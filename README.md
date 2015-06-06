@@ -49,13 +49,13 @@ angular.module('myapp', ['imageCropper']);
 ### The directive
 
 ```html
-    <image-cropper image="{{vm.imageUrl}}"
-        dest-width="640"
-        dest-height="480"
-        show-controls="vm.showControls"
-        cropped-image="vm.imageResult"
-    ></image-cropper>
-    ```
+<image-cropper image="{{vm.imageUrl}}"
+    dest-width="640"
+    dest-height="480"
+    show-controls="vm.showControls"
+    cropped-image="vm.imageResult"
+></image-cropper>
+```
 
 ## Options
 
