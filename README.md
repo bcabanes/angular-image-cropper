@@ -2,7 +2,7 @@
 
 ## Live example
 
-To see a live example, go to the [demo's page](#).
+To see a live example, go to the [demo's page](http://bcabanes.github.io/angular-image-cropper/).
 
 
 ## Description
@@ -19,7 +19,7 @@ Like selecting the display area of a profile picture or avatar.
 #### Using [Bower](http://bower.io/)
 
 ```bash
-bower install angular-image-cropper
+bower install ng-image-cropper
 ```
 
 ## Usage
