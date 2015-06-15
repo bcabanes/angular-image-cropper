@@ -47,9 +47,9 @@
     });
 
     /**
-     * Task: 'gulp deploy'
+     * Task: 'gulp dist'
      */
-    gulp.task('deploy', function() {
+    gulp.task('dist', function() {
         runSequence(
             'styles',
             'jshint',
