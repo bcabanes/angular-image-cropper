@@ -60,7 +60,7 @@
                 context.translate(-image.width, 0);
                 context.translate(positions.y/positions.scale, -positions.x/positions.scale);
             } else {
-                context.translate(-positions.x, -positions.y);
+                context.translate(-positions.x/positions.scale, -positions.y/positions.scale);
             }
 
             context.drawImage(image, 0, 0);
