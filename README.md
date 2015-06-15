@@ -28,12 +28,12 @@ bower install ng-image-cropper
 
 ```html
 <!-- CSS -->
-<link rel="stylesheet" type="text/css" href="/path/to/angular-image-cropper.css">
+<link rel="stylesheet" type="text/css" href="/path/to/angular-image-cropper.min.css">
 
 <!-- JS -->
 <script src="/path/to/jquery.js"></script>
 <script src="/path/to/angular.js"></script>
-<script src="/path/to/angular-image-cropper.js"></script>
+<script src="/path/to/angular-image-cropper.min.js"></script>
 ```
 
 
