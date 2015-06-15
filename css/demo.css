@@ -1,9 +1,12 @@
 body {
+    margin: 0;
     background: url('../images/background.jpg');
     background-size: cover;
     background-repeat: no-repeat;
     color: #FFFFFF;
     font-family: 'Open Sans', sans-serif;
+    overflow-x: hidden;
+    width: 100%;
 }
 
 header {
