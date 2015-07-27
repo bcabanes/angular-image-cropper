@@ -315,9 +315,10 @@
 
             // calls
             gImage[0].onload = function() {
+                var thisImage = this;
                 setWrapper();
                 hardwareAccelerate(gImage);
-                center();
+                (thisImage.naturalWidth < options.width || thisImage.naturalHeight < options.height) ? fit() : center();
                 element.find('img').on(events.start, start);
                 getCroppedImage();
 
