@@ -322,8 +322,7 @@
                 hardwareAccelerate(gImage);
                 if (thisImage.naturalWidth < options.width || thisImage.naturalHeight < options.height || options.fitOnInit)
                     fit();
-                else
-                    center();
+                center();
                 element.find('img').on(events.start, start);
                 getCroppedImage();
 
