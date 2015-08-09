@@ -21,7 +21,8 @@
                 'zoomStep': '@',
                 'init': '@',
                 'croppedImage': '=',
-                'showControls': '='
+                'showControls': '=',
+                'fitOnInit': '='
             },
             'template': ['<div class="frame">',
                 '<div class="imgCropper-window">',
@@ -55,6 +56,7 @@
             options.height = Number(scope.destHeight) || defaultConfig.height;
             options.zoomStep = Number(scope.zoomStep) || defaultConfig.zoomStep;
             options.init = scope.init || defaultConfig.init;
+            options.fitOnInit = scope.fitOnInit || defaultConfig.fitOnInit;
 
             var zoomInFactor = 1 + options.zoomStep;
             var zoomOutFactor = 1 / zoomInFactor;
@@ -315,8 +317,11 @@
 
             // calls
             gImage[0].onload = function() {
+                var thisImage = this;
                 setWrapper();
                 hardwareAccelerate(gImage);
+                if (thisImage.naturalWidth < options.width || thisImage.naturalHeight < options.height || options.fitOnInit)
+                    fit();
                 center();
                 element.find('img').on(events.start, start);
                 getCroppedImage();

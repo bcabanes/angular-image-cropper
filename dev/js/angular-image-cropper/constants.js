@@ -8,7 +8,8 @@
             'height': 300,
             'zoomStep': 0.1,
             'init': null,
-            'showControls': true
+            'showControls': true,
+            'fitOnInit': false
     });
 
 })(angular);
