@@ -1,6 +1,6 @@
 {
   "name": "ng-image-cropper",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "homepage": "https://github.com/bcabanes/angular-image-cropper",
   "authors": [
     "bcabanes <contact@benjamincabanes.com>"
@@ -10,11 +10,17 @@
   "keywords": [
     "angularjs",
     "angular",
-    "cropper",
     "crop",
-    "picture",
     "image",
-    "directive"
+    "rotate",
+    "zoom",
+    "drag",
+    "angularjs-module",
+    "fit",
+    "center",
+    "touch",
+    "responsive",
+    "fluid"
   ],
   "dependencies": {
       "angular": "1.3.*",
