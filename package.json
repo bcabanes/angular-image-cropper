@@ -10,7 +10,7 @@
     "gulp-changed": "*",
     "gulp-load-plugins": "0.10.0",
     "gulp-notify": "2.*",
-    "gulp-sass": "1.*",
+    "gulp-sass": "2.*",
     "gulp-watch": "4.*",
     "browser-sync": "2.*",
     "del": "1.*",
