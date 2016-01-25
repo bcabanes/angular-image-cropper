@@ -1,342 +1,298 @@
 (function(angular) {
-    'use strict';
+  'use strict';
 
-    angular
-        .module('imageCropper')
-        .directive('imageCropper', directive);
+  angular
+    .module('imageCropper')
+    .directive('imageCropper', directive);
 
-    directive.$inject = [
-        'Cropper',
-        'defaultConfig',
-        'Helper'
-    ];
+  directive.$inject = [
+    'Cropper',
+    'defaultConfig',
+    'Helper'
+  ];
 
-    function directive(Cropper, defaultConfig, Helper) {
-        return {
-            'restrict': 'E',
-            'scope': {
-                'image': '@',
-                'destWidth': '@',
-                'destHeight': '@',
-                'zoomStep': '@',
-                'init': '@',
-                'croppedImage': '=',
-                'showControls': '=',
-                'fitOnInit': '='
-            },
-            'template': ['<div class="frame">',
-                '<div class="imgCropper-window">',
-                '<div class="imgCropper-canvas">',
-                '<img ng-src="{{image}}">',
-                '</div></div></div>',
-                '<div id="controls" ng-if="showControls">',
-                '<button ng-click="rotateLeft()" type="button" title="Rotate left"> &lt; </button>',
-                '<button ng-click="zoomOut()" type="button" title="Zoom out"> - </button>',
-                '<button ng-click="fit()" type="button" title="Fit image"> [ ] </button>',
-                '<button ng-click="zoomIn()" type="button" title="Zoom in"> + </button>',
-                '<button ng-click="rotateRight()" type="button" title="Rotate right"> &gt; </button>',
-                '</div>'].join(''),
-            'link': link
-        };
+  function directive(mCropper, defaultConfig, Helper) {
+    return {
+      'restrict': 'E',
+      'scope': {
+        'image': '@',
+        'destWidth': '@',
+        'destHeight': '@',
+        'zoomStep': '@',
+        'init': '@',
+        'croppedImage': '=',
+        'showControls': '=',
+        'fitOnInit': '='
+      },
+      /*'template': ['<div class="frame">',
+        '<div class="imgCropper-window">',
+        '<div class="imgCropper-canvas">',
+        '<img ng-src="{{image}}">',
+        '</div></div></div>',
+        '<div id="controls" ng-if="showControls">',
+        '<button ng-click="rotateLeft()" type="button" title="Rotate left"> &lt; </button>',
+        '<button ng-click="zoomOut()" type="button" title="Zoom out"> - </button>',
+        '<button ng-click="fit()" type="button" title="Fit image"> [ ] </button>',
+        '<button ng-click="zoomIn()" type="button" title="Zoom in"> + </button>',
+        '<button ng-click="rotateRight()" type="button" title="Rotate right"> &gt; </button>',
+        '</div>'].join(''),*/
+      'link': link
+    };
 
-        function link(scope, element, attributes) {
-            var gEnabled = false;
-
-            var body = angular.element('body');
-
-            var gImage = element.find('img');
-            var gCanvas = element.find('.imgCropper-canvas');
-            var gWindow = element.find('.imgCropper-window');
-
-            /**
-             * Merge default with attributes given
-             */
-            var options = {};
-            options.width = Number(scope.destWidth) || defaultConfig.width;
-            options.height = Number(scope.destHeight) || defaultConfig.height;
-            options.zoomStep = Number(scope.zoomStep) || defaultConfig.zoomStep;
-            options.init = scope.init || defaultConfig.init;
-            options.fitOnInit = scope.fitOnInit || defaultConfig.fitOnInit;
-
-            var zoomInFactor = 1 + options.zoomStep;
-            var zoomOutFactor = 1 / zoomInFactor;
-
-            var imgCopperRatio = options.height / options.width;
-
-            var gWidth, gHeight, gLeft, gTop, gAngle;
-            gWidth = gHeight = gLeft = gTop = gAngle = 0;
-
-            var gData = {
-                'scale': 1,
-                'angle': 0,
-                'x': 0,
-                'y': 0,
-                'w': options.width,
-                'h': options.height
-            };
-
-            var events = {
-                'start': 'touchstart mousedown',
-                'move': 'touchmove mousemove',
-                'stop': 'touchend mouseup'
-            };
-
-            var pointerPosition;
-
-            /**
-             * -------------------
-             */
-
-            var setWrapper = function() {
-                gWidth = gImage[0].naturalWidth / options.width;
-                gHeight = gImage[0].naturalHeight / options.height;
-
-                gCanvas.css({
-                    'width': gWidth * 100 + '%',
-                    'height': gHeight * 100 + '%',
-                    'top': 0,
-                    'left': 0
-                });
-
-                gWindow.css({
-                    'width': '100%',
-                    'height': 'auto',
-                    'padding-top': (options.height / options.width * 100) + '%'
-                });
-
-                // Ready to process
-                gEnabled = true;
-            };
-
-            // events
-            var start = function(e) {
-                if(!(gEnabled && Helper.validEvent(e))) {
-                    return;
-                }
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                pointerPosition = Helper.getPointerPosition(e);
-                return bind();
-            };
-
-            var bind = function() {
-                body.addClass('imgCropper-dragging');
-                gCanvas.on(events.move, drag);
-                return gCanvas.on(events.stop, unbind);
-            };
-
-            var unbind = function(e) {
-                body.removeClass('imgCropper-dragging');
-                gCanvas.off(events.move, drag);
-                gCanvas.off(events.stop, unbind);
-            };
-
-            var offset = function(left, top) {
-                if(left || left === 0) {
-                    if(left < 0) {
-                        left = 0;
-                    }
-
-                    if(left > gWidth - 1) {
-                        left = gWidth - 1;
-                    }
-
-                    gCanvas[0].style.left = (-left * 100).toFixed(2) + '%';
-                    gLeft = left;
-                    gData.x = Math.round(left * options.width);
-                }
-
-                if(top || top === 0) {
-                    if(top < 0) {
-                        top = 0;
-                    }
-
-                    if(top > gHeight - 1) {
-                        top = gHeight - 1;
-                    }
-
-                    gCanvas[0].style.top = (-top * 100).toFixed(2) + '%';
-                    gTop = top;
-                    gData.y = Math.round(top * options.height);
-                }
-
-                return getCroppedImage();
-            };
-
-            // actions
-            var drag = function(e) {
-                var dx, dy, left, p, top;
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                p = Helper.getPointerPosition(e);
-                dx = p.x - pointerPosition.x;
-                dy = p.y - pointerPosition.y;
-                pointerPosition = p;
-                left = dx === 0 ? null : gLeft - dx / gWindow[0].clientWidth;
-                top = dy === 0 ? null : gTop - dy / gWindow[0].clientHeight;
-                return offset(left, top);
-            };
-
-            var zoom = function(factor) {
-                var h, left, top, w;
-                if(factor <= 0 || factor === 1) {
-                    return;
-                }
-
-                w = gWidth;
-                h = gHeight;
-
-                if(w * factor > 1 && h * factor > 1) {
-                    gWidth *= factor;
-                    gHeight *= factor;
-                    gCanvas[0].style.width = (gWidth * 100).toFixed(2) + '%';
-                    gCanvas[0].style.height = (gHeight * 100).toFixed(2) + '%';
-                    gData.scale *= factor;
-                }else{
-                    fit();
-                    factor = gWidth / w;
-                }
-
-                left = (gLeft + 0.5) * factor - 0.5;
-                top = (gTop + 0.5) * factor - 0.5;
-                return offset(left, top);
-            };
-
-            var fit = function() {
-                var prevWidth, relativeRatio;
-
-                prevWidth = gWidth;
-                relativeRatio = gHeight / gWidth;
-
-                if(relativeRatio > 1) {
-                    gWidth = 1;
-                    gHeight = relativeRatio;
-                }else{
-                    gWidth = 1 / relativeRatio;
-                    gHeight = 1;
-                }
-
-                gCanvas[0].style.width = (gWidth * 100).toFixed(2) + '%';
-                gCanvas[0].style.height = (gHeight * 100).toFixed(2) + '%';
-
-                gData.scale *= gWidth / prevWidth;
-
-                return getCroppedImage();
-            };
-
-            var center = function() {
-                return offset((gWidth - 1) / 2, (gHeight - 1) / 2);
-            };
-
-            var rotate = function(angle) {
-                var canvasRatio, h, w, _ref, _ref1, _ref2;
-
-                if(!Helper.canTransform()) {
-                    return;
-                }
-
-                if(!(angle !== 0 && angle % 90 === 0)) {
-                    return;
-                }
-
-                gAngle = (gAngle + angle) % 360;
-
-                if(gAngle < 0) {
-                    gAngle = 360 + gAngle;
-                }
-
-                if(angle % 180 !== 0) {
-                    _ref = [gHeight * imgCopperRatio, gWidth / imgCopperRatio];
-                    gWidth = _ref[0];
-                    gHeight = _ref[1];
-
-                    if(gWidth >= 1 && gHeight >= 1) {
-                        gCanvas[0].style.width = gWidth * 100 + '%';
-                        gCanvas[0].style.height = gHeight * 100 + '%';
-                    } else {
-                        fit();
-                    }
-                }
-
-                _ref1 = [1, 1];
-                w = _ref1[0];
-                h = _ref1[1];
-
-                if(gAngle % 180 !== 0) {
-                    canvasRatio = gHeight / gWidth * imgCopperRatio;
-                    _ref2 = [canvasRatio, 1 / canvasRatio];
-                    w = _ref2[0];
-                    h = _ref2[1];
-                }
-
-                gImage[0].style.width = w * 100 + '%';
-                gImage[0].style.height = h * 100 + '%';
-                gImage[0].style.left = (1 - w) / 2 * 100 + '%';
-                gImage[0].style.top = (1 - h) / 2 * 100 + '%';
-                gImage.css({
-                    'transform': "rotate(" + gAngle + "deg)"
-                });
-
-                center();
-
-                gData.angle = gAngle;
-
-                return getCroppedImage();
-            };
-
-            // buttons
-            scope.rotateLeft = function() {
-                rotate(-90);
-            };
-            scope.rotateRight = function() {
-                rotate(90);
-            };
-            scope.center = function() {
-                center();
-            };
-            scope.fit = function() {
-                fit();
-                center();
-            };
-            scope.zoomIn = function() {
-                zoom(zoomInFactor);
-            };
-            scope.zoomOut = function() {
-                zoom(zoomOutFactor);
-                getCroppedImage();
-            };
-
-
-            var getCroppedImage = function() {
-                Cropper
-                    .crop(gImage[0], gData, options.width, options.height)
-                    .then(function(data) {
-                        scope.croppedImage = data;
-                    });
-            };
-
-            // calls
-            gImage[0].onload = function() {
-                var thisImage = this;
-                setWrapper();
-                hardwareAccelerate(gImage);
-                if (thisImage.naturalWidth < options.width || thisImage.naturalHeight < options.height || options.fitOnInit)
-                    fit();
-                center();
-                element.find('img').on(events.start, start);
-                getCroppedImage();
-
-            };
-
-            var hardwareAccelerate = function(el) {
-                return angular.element(el).css({
-                    '-webkit-perspective': 1000,
-                    'perspective': 1000,
-                    '-webkit-backface-visibility': 'hidden',
-                    'backface-visibility': 'hidden'
-                });
-            };
-
-        }
+    function link(scope, element, attributes) {
+      new Cropper({
+        imageURL: scope.image,
+        target: element[0],
+        checkCrossOrigin: true
+      });
     }
+  }
 })(angular);
+
+
+function Cropper(options) {
+  var _elements;
+  this.elements = _elements = {};
+  this.originalURL = options.imageURL;
+
+  this.options = {};
+  this.options.checkCrossOrigin = options.checkCrossOrigin || false;
+
+  _elements.target = options.target;
+  _elements.body = document.getElementsByTagName('body')[0];
+
+  this.buildDOM();
+
+  console.log(this.elements);
+}
+
+/**
+ * Build DOM element for the Cropper appended in the targeted element.
+ */
+Cropper.prototype.buildDOM = function() {
+  var _elements;
+  _elements = this.elements;
+
+  // Wrapper.
+  _elements.wrapper = document.createElement('div');
+  _elements.wrapper.className = 'imgCropper-wrapper';
+
+  // Canvas.
+  _elements.container = document.createElement('div');
+  _elements.container.className = 'imgCropper-container';
+
+  // Image.
+  _elements.image = document.createElement('img');
+  _elements.image.className = 'imgCropper-image';
+
+
+  // Target -> Wrapper -> Container -> Image
+  _elements.container.appendChild(_elements.image);
+  _elements.wrapper.appendChild(_elements.container);
+  _elements.target.appendChild(_elements.wrapper);
+
+  // Controls.
+  _elements.controls = {};
+  _elements.controls.wrapper = document.createElement('div');
+  _elements.controls.wrapper.className = 'imgCropper-controls';
+
+  _elements.controls.rotateLeft = document.createElement('button');
+  _elements.controls.rotateLeft.innerHTML = ' &lt; ';
+  _elements.controls.rotateRight = document.createElement('button');
+  _elements.controls.rotateRight.innerHTML = ' &gt; ';
+  _elements.controls.zoomIn = document.createElement('button');
+  _elements.controls.zoomIn.innerHTML = ' + ';
+  _elements.controls.zoomOut = document.createElement('button');
+  _elements.controls.zoomOut.innerHTML = ' - ';
+  _elements.controls.fit = document.createElement('button');
+  _elements.controls.fit.innerHTML = ' [ ] ';
+
+  // Target -> Wrapper -> buttons
+  _elements.controls.wrapper.appendChild(_elements.controls.rotateLeft);
+  _elements.controls.wrapper.appendChild(_elements.controls.rotateRight);
+  _elements.controls.wrapper.appendChild(_elements.controls.zoomIn);
+  _elements.controls.wrapper.appendChild(_elements.controls.zoomOut);
+  _elements.controls.wrapper.appendChild(_elements.controls.fit);
+  _elements.target.appendChild(_elements.controls.wrapper);
+
+  this.loadImage();
+};
+
+Cropper.prototype.loadImage = function() {
+  var self = this;
+  var xhr;
+
+  // XMLHttpRequest disallows to open a Data URL in some browsers like IE11 and Safari.
+  if (/^data\:/.test(this.originalURL)) {
+    this.originalBase64 = this.originalURL;
+    this.setupImageSRC();
+  }
+
+  xhr = new XMLHttpRequest();
+  xhr.onerror = xhr.onabort = function(response) {
+    // TODO: Try to continue.
+    self.originalBase64 = self.originalURL;
+    self.setupImageSRC();
+  };
+
+  // Need to have proper sets of 'Access-Control-Allow-Origin' on the requested resource server.
+  xhr.onload = function() {
+    self.originalArrayBuffer = this.response;
+    self.originalBase64 = 'data:image/jpeg;base64,' + self.base64ArrayBuffer(this.response);
+    self.setupImageSRC();
+  };
+  xhr.open('get', this.originalURL, true);
+  //xhr.setRequestHeader('Content-Type', 'image/jpg'); // TODO: Auto determine the image MIME's type.
+  xhr.responseType = 'arraybuffer';
+  xhr.send();
+};
+
+/**
+ * Check crossOrigins and setup image src.
+ * TODO: Send event when image is loaded.
+ */
+Cropper.prototype.setupImageSRC = function() {
+  var _image = this.elements.image;
+  var crossOrigin, crossOriginUrl;
+
+  if (this.options.checkCrossOrigin && this.isCrossOrigin(this.originalURL)) {
+    this.crossOrigin = _image.crossOrigin;
+
+    if (this.crossOrigin) {
+      this.crossOrigin = this.originalURL;
+    } else {
+      this.crossOrigin = 'anonymous';
+
+      // Bust cache with a timestamp.
+      this.crossOriginUrl = this.addTimestamp(this.originalURL);
+    }
+  }
+
+  if (this.crossOrigin) {
+    this.elements.image.crossOrigin = this.crossOrigin;
+  }
+
+  // Setup image src.
+  this.elements.image.src = this.crossOriginUrl || this.originalURL; // Need to verify.
+  //this.elements.image.src = this.originalBase64; // Need to verify.
+};
+
+/**
+ * Helper for adding a timestamp at the end of an URL.
+ * @param url
+ * @returns {Buffer|Array.<T>|string}
+ */
+Cropper.prototype.addTimestamp = function(url) {
+  var timestamp = 'timestamp=' + (new Date()).getTime();
+  var sign = '?';
+
+  if (url.indexOf('?') !== -1) {
+    sign = '&';
+  }
+
+  return url.concat(sign, timestamp);
+};
+
+/**
+ * Helper for checking if the given url is cross origin.
+ * @param url
+ * @returns {Array|{index: number, input: string}|*|{bool, needsContext}|boolean}
+ */
+Cropper.prototype.isCrossOrigin = function(url) {
+  var parts = url.match();
+
+  return parts && (
+      parts[1] !== location.protocol ||
+      parts[2] !== location.hostname ||
+      parts[3] !== location.port
+    );
+};
+
+/**
+ * Helper for converting arrayBuffer to base64.
+ * @param arrayBuffer
+ * @returns {string}
+ */
+Cropper.prototype.base64ArrayBuffer = function(arrayBuffer) {
+  var base64 = '';
+  var encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  var bytes = new Uint8Array(arrayBuffer);
+  var byteLength = bytes.byteLength;
+  var byteRemainder = byteLength % 3;
+  var mainLength = byteLength - byteRemainder;
+  var a, b, c, d;
+  var chunk;
+  // Main loop deals with bytes in chunks of 3
+  for (var i = 0; i < mainLength; i = i + 3) {
+    // Combine the three bytes into a single integer
+    chunk = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2];
+    // Use bitmasks to extract 6-bit segments from the triplet
+    a = (chunk & 16515072) >> 18; // 16515072 = (2^6 - 1) << 18
+    b = (chunk & 258048) >> 12; // 258048   = (2^6 - 1) << 12
+    c = (chunk & 4032) >> 6; // 4032     = (2^6 - 1) << 6
+    d = chunk & 63;               // 63       = 2^6 - 1
+    // Convert the raw binary segments to the appropriate ASCII encoding
+    base64 += encodings[a] + encodings[b] + encodings[c] + encodings[d];
+  }
+  // Deal with the remaining bytes and padding
+  if (byteRemainder == 1) {
+    chunk = bytes[mainLength];
+    a = (chunk & 252) >> 2; // 252 = (2^6 - 1) << 2
+    // Set the 4 least significant bits to zero
+    b = (chunk & 3) << 4; // 3   = 2^2 - 1
+    base64 += encodings[a] + encodings[b] + '==';
+  } else if (byteRemainder == 2) {
+    chunk = (bytes[mainLength] << 8) | bytes[mainLength + 1];
+    a = (chunk & 64512) >> 10; // 64512 = (2^6 - 1) << 10
+    b = (chunk & 1008) >> 4; // 1008  = (2^6 - 1) << 4
+    // Set the 2 least significant bits to zero
+    c = (chunk & 15) << 2; // 15    = 2^4 - 1
+    base64 += encodings[a] + encodings[b] + encodings[c] + '=';
+  }
+  return base64;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
