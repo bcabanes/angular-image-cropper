@@ -51,19 +51,45 @@
 
 
 function Cropper(options) {
-  var _elements;
-  this.elements = _elements = {};
+  this.isReady = false;
   this.originalURL = options.imageURL;
 
-  this.options = {};
-  this.options.checkCrossOrigin = options.checkCrossOrigin || false;
+  // Setup options.
+  this.options = {
+    checkCrossOrigin: options.checkCrossOrigin || false,
+    width: options.destWidth || 640,
+    height: options.destHeight || 480,
+    showControls: options.showControls || true,
+    fitOnInit: options.fitOnInit || true,
+    zoomStep: options.zoomStep || 1
+  };
 
-  _elements.target = options.target;
-  _elements.body = document.getElementsByTagName('body')[0];
+  // Setup gesture events.
+  this.gesture = {};
+  this.gesture.events = {
+    start: 'touchstart mousedown',
+    move: 'touchmove mousemove',
+    stop: 'touchend mouseup'
+  };
+
+  this.pointerPosition = undefined;
+
+  // Setup basic elements.
+  this.elements = {
+    target: options.target,
+    body: document.getElementsByTagName('body')[0]
+  };
 
   this.buildDOM();
 
-  console.log(this.elements);
+  /**
+   * TODO: Create a function to regroup these things.
+   */
+  this.events.on('ImageReady', this.setDimensions.bind(this));
+  this.events.on('ImageReady', this.initializeGesture.bind(this));
+  //this.events.on('ImageReady', this.fitImage.bind(this));
+
+console.log(this);
 }
 
 /**
@@ -77,7 +103,7 @@ Cropper.prototype.buildDOM = function() {
   _elements.wrapper = document.createElement('div');
   _elements.wrapper.className = 'imgCropper-wrapper';
 
-  // Canvas.
+  // Container.
   _elements.container = document.createElement('div');
   _elements.container.className = 'imgCropper-container';
 
@@ -149,11 +175,9 @@ Cropper.prototype.loadImage = function() {
 
 /**
  * Check crossOrigins and setup image src.
- * TODO: Send event when image is loaded.
  */
 Cropper.prototype.setupImageSRC = function() {
   var _image = this.elements.image;
-  var crossOrigin, crossOriginUrl;
 
   if (this.options.checkCrossOrigin && this.isCrossOrigin(this.originalURL)) {
     this.crossOrigin = _image.crossOrigin;
@@ -175,12 +199,219 @@ Cropper.prototype.setupImageSRC = function() {
   // Setup image src.
   this.elements.image.src = this.crossOriginUrl || this.originalURL; // Need to verify.
   //this.elements.image.src = this.originalBase64; // Need to verify.
+
+  // Waiting the image as loaded to trigger event.
+  this.elements.image.onload = function() {
+    this.events.triggerHandler('ImageReady');
+  }.bind(this);
+};
+
+/**
+ * Set dimensions.
+ */
+Cropper.prototype.setDimensions = function() {
+  this.zoomInFactor = 1 * this.options.zoomStep;
+  this.zoomOutFactor = 1 / this.zoomInFactor;
+
+  this.imageRatio = this.options.height / this.options.width;
+
+  this.cropperHeight = this.elements.image.naturalHeight / this.options.height;
+  this.cropperWidth = this.elements.image.naturalWidth / this.options.width;
+  this.cropperLeft = 0;
+  this.cropperTop = 0;
+  this.cropperScale = 1;
+  this.cropperAngle = 0;
+  this.cropperX = this.options.width;
+  this.cropperY = this.options.height;
+
+  // Container.
+  this.elements.container.style.height = this.cropperHeight * 100 + '%';
+  this.elements.container.style.width = this.cropperWidth * 100 + '%';
+  this.elements.container.style.top = 0;
+  this.elements.container.style.left = 0;
+
+  // Wrapper.
+  this.elements.wrapper.style.height = 'auto';
+  this.elements.wrapper.style.width = '100%';
+  this.elements.wrapper.style.paddingTop = (this.imageRatio * 100) + '%';
+
+  this.isReady = true;
+};
+
+/**
+ * Image should be already loaded.
+ */
+Cropper.prototype.initializeGesture = function() {
+  var self = this;
+  this.addEventListeners(this.elements.image, this.gesture.events.start, function(event) {
+    if (self.isReady && self.isValidEvent(event)) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      self.pointerPosition = self.getPointerPosition(event);
+      bind();
+    }
+  });
+
+  var bind = function() {
+    self.elements.body.classList.add('imgCropper-dragging');
+    self.addEventListeners(self.elements.container, self.gesture.events.move, drag);
+    self.addEventListeners(self.elements.container, self.gesture.events.stop, unbind);
+  };
+
+  var unbind = function() {
+    self.elements.body.classList.remove('imgCropper-dragging');
+    self.removeEventListeners(self.elements.container, self.gesture.events.move, drag);
+    self.removeEventListeners(self.elements.container, self.gesture.events.stop, unbind);
+  };
+
+  var drag = function(event) {
+    self.dragging.call(self, event);
+  };
+};
+
+/**
+ * Dragging action.
+ * @param event
+ */
+Cropper.prototype.dragging = function(event) {
+  var dx, dy, left, p, top;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+
+  p = this.getPointerPosition(event);
+
+  dx = p.x - this.pointerPosition.x;
+  dy = p.y - this.pointerPosition.y;
+
+  this.pointerPosition = p;
+
+  left = (dx === 0)? null : this.cropperLeft - dx / this.elements.wrapper.clientWidth;
+  top = (dy === 0)? null : this.cropperTop - dy / this.elements.wrapper.clientHeight;
+
+  this.setOffset(left, top);
+};
+
+/**
+ * Set image offset manipulations.
+ * @param left
+ * @param top
+ */
+Cropper.prototype.setOffset = function(left, top) {
+  if (left || left === 0) {
+    // Detect horizontal borders.
+    if (left < 0) { left = 0; }
+    if (left > this.cropperWidth - 1) { left = this.cropperWidth - 1; }
+
+    this.elements.container.style.left = (-left * 100).toFixed(2) + '%';
+    this.cropperLeft = left;
+    this.cropperX = Math.round(left * this.options.width);
+  }
+
+  if (top || top === 0) {
+    // Detect vertical borders.
+    if (top < 0) { top = 0; }
+    if (top > this.cropperHeight - 1) { top = this.cropperHeight - 1; }
+
+    this.elements.container.style.top = (-top * 100).toFixed(2) + '%';
+    this.cropperTop = top;
+    this.cropperY = Math.round(top * this.options.height);
+  }
+};
+
+Cropper.prototype.fitImage = function() {
+  var prevWidth, relativeRatio;
+
+  prevWidth = this.cropperWidth;
+  relativeRatio = this.cropperHeight / this.cropperWidth;
+
+  if (relativeRatio > 1) {
+    this.cropperWidth = 1;
+    this.cropperHeight = relativeRatio;
+  } else {
+    this.cropperWidth = 1 / relativeRatio;
+    this.cropperHeight = 1;
+  }
+
+  this.elements.container.style.width = (this.cropperWidth * 100).toFixed(2) + '%';
+  this.elements.container.style.height = (this.cropperHeight * 100).toFixed(2) + '%';
+
+  this.cropperAngle *= this.cropperWidth / prevWidth;
+};
+
+/**
+ * Helper for adding new event listener on element given.
+ * @param element
+ * @param eventNames
+ * @param func
+ * @param context
+ */
+Cropper.prototype.addEventListeners = function(element, eventNames, func, context) {
+  eventNames.split(' ').forEach(function(eventName) {
+    if (context) {
+      element.addEventListener(eventName, func.bind(context), false);
+    } else {
+      element.addEventListener(eventName, func, false);
+    }
+  });
+};
+
+/**
+ * Helper for removing event listener in element given.
+ * @param element
+ * @param eventNames
+ * @param func
+ * @param context
+ */
+Cropper.prototype.removeEventListeners = function(element, eventNames, func, context) {
+  eventNames.split(' ').forEach(function(eventName) {
+    if (context) {
+      element.removeEventListener(eventName, func.bind(context), false);
+    } else {
+      element.removeEventListener(eventName, func, false);
+    }
+  });
+};
+
+/**
+ * Helper for setting pointer position.
+ * @param {object} event
+ * @returns {{x: *, y: *}}
+ */
+Cropper.prototype.getPointerPosition = function(event) {
+  if (this.isTouchEvent(event)) {
+    event = event.touches[0];
+  }
+  return {
+    x: event.pageX,
+    y: event.pageY
+  };
+};
+/**
+ * Helper for testing if the event is valid.
+ * TODO: Comment this magic thing.
+ * @param event
+ * @returns {boolean}
+ */
+Cropper.prototype.isValidEvent = function(event) {
+  if (this.isTouchEvent(event)) {
+    return event.changedTouches.length === 1;
+  }
+  return event.which === 1;
+};
+
+/**
+ * Helper for testing if the event is touch.
+ * @param event
+ * @returns {boolean}
+ */
+Cropper.prototype.isTouchEvent = function(event) {
+  return /touch/i.test(event.type);
 };
 
 /**
  * Helper for adding a timestamp at the end of an URL.
  * @param url
- * @returns {Buffer|Array.<T>|string}
+ * @returns {string}
  */
 Cropper.prototype.addTimestamp = function(url) {
   var timestamp = 'timestamp=' + (new Date()).getTime();
@@ -192,20 +423,19 @@ Cropper.prototype.addTimestamp = function(url) {
 
   return url.concat(sign, timestamp);
 };
-
 /**
  * Helper for checking if the given url is cross origin.
  * @param url
- * @returns {Array|{index: number, input: string}|*|{bool, needsContext}|boolean}
+ * @returns {boolean}
  */
 Cropper.prototype.isCrossOrigin = function(url) {
   var parts = url.match();
 
-  return parts && (
+  return Boolean(parts && (
       parts[1] !== location.protocol ||
       parts[2] !== location.hostname ||
       parts[3] !== location.port
-    );
+    ));
 };
 
 /**
@@ -252,7 +482,27 @@ Cropper.prototype.base64ArrayBuffer = function(arrayBuffer) {
   return base64;
 };
 
+/**
+ * Helper for events handler.
+ */
+Cropper.prototype.events = new function() {
+  var _triggers = {};
 
+  this.on = function(event, callback) {
+    if (!_triggers[event]) {
+      _triggers[event] = [];
+    }
+    _triggers[event].push(callback);
+  };
+
+  this.triggerHandler = function(event, params) {
+    if (_triggers[event]) {
+      for (var i in _triggers[event]) {
+        _triggers[event][i](params);
+      }
+    }
+  };
+};
 
 
 

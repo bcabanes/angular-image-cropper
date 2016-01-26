@@ -6,7 +6,7 @@ body.imgCropper-dragging, body.imgCropper-dragging * {
   cursor: grabbing, move;  /* IE hack */
 }
 
-.imgCropper-window {
+.imgCropper-wrapper {
   display: block;
   position: relative;
   overflow: hidden;
@@ -17,7 +17,7 @@ body.imgCropper-dragging, body.imgCropper-dragging * {
   cursor: grab, move;  /* IE hack */
 }
 
-.imgCropper-canvas {
+.imgCropper-container {
   position: absolute;
   top: 0;
   left: 0;
@@ -27,7 +27,7 @@ body.imgCropper-dragging, body.imgCropper-dragging * {
   border: none !important;
 }
 
-.imgCropper-canvas > * {
+.imgCropper-container > * {
   position: absolute;
   top: 0;
   left: 0;
