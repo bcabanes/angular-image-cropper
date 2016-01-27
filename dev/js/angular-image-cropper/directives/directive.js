@@ -85,12 +85,32 @@ function Cropper(options) {
   /**
    * TODO: Create a function to regroup these things.
    */
-  this.events.on('ImageReady', this.setDimensions.bind(this));
-  this.events.on('ImageReady', this.initializeGesture.bind(this));
-  //this.events.on('ImageReady', this.fitImage.bind(this));
+  //this.events.on('ImageReady', function() {
+  //  self.zoomImage(3.5);
+  //  self.rotateImage(180);
+  //});
+  this.events.on('ImageReady', this.initialize.bind(this));
 
 console.log(this);
 }
+
+Cropper.prototype.initialize = function() {
+  this.useHardwareAccelerate(this.elements.image);
+  this.setDimensions();
+  this.initializeGesture();
+
+  if (this.imageHasToFit()) {
+    this.fitImage();
+  }
+
+  this.centerImage();
+};
+
+Cropper.prototype.imageHasToFit = function() {
+  return this.elements.image.naturalWidth < this.options.width ||
+    this.elements.image.naturalHeight < this.options.height ||
+    this.options.fitOnInit;
+};
 
 /**
  * Build DOM element for the Cropper appended in the targeted element.
@@ -116,6 +136,10 @@ Cropper.prototype.buildDOM = function() {
   _elements.container.appendChild(_elements.image);
   _elements.wrapper.appendChild(_elements.container);
   _elements.target.appendChild(_elements.wrapper);
+
+  if (!this.options.showControls) {
+    return this.loadImage();
+  }
 
   // Controls.
   _elements.controls = {};
@@ -220,7 +244,7 @@ Cropper.prototype.setDimensions = function() {
   this.cropperLeft = 0;
   this.cropperTop = 0;
   this.cropperScale = 1;
-  this.cropperAngle = 0;
+  this.cropperDegree = 0;
   this.cropperX = this.options.width;
   this.cropperY = this.options.height;
 
@@ -335,7 +359,83 @@ Cropper.prototype.fitImage = function() {
   this.elements.container.style.width = (this.cropperWidth * 100).toFixed(2) + '%';
   this.elements.container.style.height = (this.cropperHeight * 100).toFixed(2) + '%';
 
-  this.cropperAngle *= this.cropperWidth / prevWidth;
+  this.cropperDegree *= this.cropperWidth / prevWidth;
+};
+
+Cropper.prototype.centerImage = function() {
+  this.setOffset((this.cropperWidth - 1) / 2, (this.cropperHeight - 1) / 2);
+};
+
+/**
+ * Do a rotation on the image with degrees given.
+ * TODO: NEED UGE COMMENTING.
+ * @param degree
+ */
+Cropper.prototype.rotateImage = function(degree) {
+  degree = 180;
+  var h = 1, w = 1;
+
+  this.cropperDegree = (this.cropperDegree + degree) % 360;
+
+  if (this.cropperDegree < 0) {
+    this.cropperDegree += 360;
+  }
+
+  if (degree % 180 !== 0) {
+    this.cropperWidth = this.cropperHeight * this.imageRatio;
+    this.cropperHeight = this.cropperWidth / this.imageRatio;
+
+    if (this.cropperWidth >= 1 && this.cropperHeight >= 1) {
+      this.elements.container.style.width = this.cropperWidth * 100 + '%';
+      this.elements.container.style.height = this.cropperHeight * 100 + '%';
+    } else {
+      this.fitImage();
+    }
+  }
+
+  // Test if this commented block breaks zoom function or other things.
+  //if (this.cropperDegree % 180 !== 0) {
+  //  w = this.cropperHeight / this.cropperWidth * this.imageRatio;
+  //  h = 1 / w;
+  //}
+
+  //this.elements.image.style.width = w * 100 + '%';
+  //this.elements.image.style.height = h * 100 + '%';
+  //this.elements.image.style.left = (1 - w) / 2 * 100 + '%';
+  //this.elements.image.style.top = (1 - h) / 2 * 100 + '%';
+  this.elements.image.style.transform = 'rotate(' + this.cropperDegree + 'deg)';
+
+  this.centerImage();
+};
+
+Cropper.prototype.zoomImage = function(factor) {
+  var originalWidth = this.cropperWidth;
+
+  if (this.cropperWidth * factor > 1 && this.cropperHeight * factor > 1) {
+    this.cropperHeight *= factor;
+    this.cropperWidth *= factor;
+    this.elements.container.style.height = (this.cropperHeight * 100).toFixed(2) + '%';
+    this.elements.container.style.width = (this.cropperWidth * 100).toFixed(2) + '%';
+    this.cropperScale *= factor;
+  } else {
+    this.fitImage();
+    factor = this.cropperWidth / originalWidth;
+  }
+
+  // Why '0.5' thing???
+  //var left = (this.cropperLeft + 0.5) * factor - 0.5;
+  //var top = (this.cropperTop + 0.5) * factor - 0.5;
+
+  // Seems to working fine.
+  var left = this.cropperLeft * factor;
+  var top = this.cropperTop * factor;
+
+  this.setOffset(left, top);
+};
+
+Cropper.prototype.useHardwareAccelerate = function(element) {
+  element.style.perspective = '1000px';
+  element.style.backfaceVisibility = 'hidden';
 };
 
 /**
