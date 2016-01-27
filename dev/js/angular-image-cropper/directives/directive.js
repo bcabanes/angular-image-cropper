@@ -60,8 +60,8 @@ function Cropper(options) {
     width: options.destWidth || 640,
     height: options.destHeight || 480,
     showControls: options.showControls || true,
-    fitOnInit: options.fitOnInit || true,
-    zoomStep: options.zoomStep || 1
+    fitOnInit: options.fitOnInit || false,
+    zoomStep: options.zoomStep || 0.1
   };
 
   // Setup gesture events.
@@ -104,6 +104,39 @@ Cropper.prototype.initialize = function() {
   }
 
   this.centerImage();
+
+  if (this.options.showControls) {
+    this.bindControls();
+  }
+};
+
+Cropper.prototype.bindControls = function() {
+  var self = this;
+  this.elements.controls.rotateLeft.addEventListener('click', function() {
+    self.applyRotation(-90);
+  });
+  this.elements.controls.rotateRight.addEventListener('click', function() {
+    self.applyRotation(90);
+  });
+  this.elements.controls.zoomIn.addEventListener('click', function() {
+    self.applyZoom(self.zoomInFactor);
+  });
+  this.elements.controls.zoomOut.addEventListener('click', function() {
+    self.applyZoom(self.zoomOutFactor);
+  });
+  this.elements.controls.fit.addEventListener('click', this.fitImage.bind(this));
+};
+
+Cropper.prototype.applyRotation = function(degree) {
+  this.rotateImage(degree);
+};
+
+Cropper.prototype.applyZoom = function(zoom) {
+  this.zoomImage(zoom);
+};
+
+Cropper.prototype.applyFit = function() {
+  this.fitImage();
 };
 
 Cropper.prototype.imageHasToFit = function() {
@@ -234,11 +267,10 @@ Cropper.prototype.setupImageSRC = function() {
  * Set dimensions.
  */
 Cropper.prototype.setDimensions = function() {
-  this.zoomInFactor = 1 * this.options.zoomStep;
+  this.zoomInFactor = 1 + this.options.zoomStep;
   this.zoomOutFactor = 1 / this.zoomInFactor;
 
   this.imageRatio = this.options.height / this.options.width;
-
   this.cropperHeight = this.elements.image.naturalHeight / this.options.height;
   this.cropperWidth = this.elements.image.naturalWidth / this.options.width;
   this.cropperLeft = 0;
@@ -359,7 +391,8 @@ Cropper.prototype.fitImage = function() {
   this.elements.container.style.width = (this.cropperWidth * 100).toFixed(2) + '%';
   this.elements.container.style.height = (this.cropperHeight * 100).toFixed(2) + '%';
 
-  this.cropperDegree *= this.cropperWidth / prevWidth;
+  this.cropperScale *= this.cropperWidth / prevWidth;
+  this.centerImage();
 };
 
 Cropper.prototype.centerImage = function() {
@@ -372,7 +405,6 @@ Cropper.prototype.centerImage = function() {
  * @param degree
  */
 Cropper.prototype.rotateImage = function(degree) {
-  degree = 180;
   var h = 1, w = 1;
 
   this.cropperDegree = (this.cropperDegree + degree) % 360;
@@ -422,15 +454,56 @@ Cropper.prototype.zoomImage = function(factor) {
     factor = this.cropperWidth / originalWidth;
   }
 
-  // Why '0.5' thing???
-  //var left = (this.cropperLeft + 0.5) * factor - 0.5;
-  //var top = (this.cropperTop + 0.5) * factor - 0.5;
-
-  // Seems to working fine.
-  var left = this.cropperLeft * factor;
-  var top = this.cropperTop * factor;
+  // Use the 0.5 to keep the origin right when zooming.
+  var left = (this.cropperLeft + 0.5) * factor - 0.5;
+  var top = (this.cropperTop + 0.5) * factor - 0.5;
 
   this.setOffset(left, top);
+};
+
+Cropper.prototype.cropImage = function() {
+  this.createCropCanvas();
+};
+
+Cropper.prototype.createCropCanvas = function() {
+  this.cropCanvas = document.createElement('canvas');
+  this.cropCanvas.height= this.options.height;
+  this.cropCanvas.width = this.options.width;
+
+  this.cropCanvasContext = this.cropCanvas.getContext('2d');
+  this._croppedImage = new Image();
+  this._croppedImage.onload = this.cropHandler.bind(this);
+  this._croppedImage.src = this.originalBase64;
+};
+
+Cropper.prototype.cropHandler = function() {
+  this.cropCanvasContext.scale(this.cropperScale, this.cropperScale);
+  this.cropCanvasContext.rotate(this.cropperDegree * Math.PI / 180);
+
+  // TODO: This is not the right thing to do.
+  switch (this.cropperDegree) {
+    case 90:
+      this.cropCanvasContext.translate(0, -this.elements.image.naturalHeight);
+      this.cropCanvasContext.translate(-this.cropperY / this.cropperScale, this.cropperX / this.cropperScale);
+      break;
+    case 180:
+      this.cropCanvasContext.translate(-this.elements.image.naturalWidth, -this.elements.image.naturalHeight);
+      this.cropCanvasContext.translate(this.cropperY / this.cropperScale, this.cropperX / this.cropperScale);
+      break;
+    case 270:
+      this.cropCanvasContext.translate(-this.elements.image.naturalWidth, 0);
+      this.cropCanvasContext.translate(this.cropperY / this.cropperScale, -this.cropperX / this.cropperScale);
+      break;
+    default:
+      this.cropCanvasContext.translate(-this.cropperX / this.cropperScale, this.cropperY / this.cropperScale);
+  }
+
+  this.cropCanvasContext.drawImage(this._croppedImage, 0, 0);
+  this._croppedImage = this.cropCanvas.toDataURL('image/jpeg');
+  this.events.triggerHandler('ImageCropped', this._croppedImage);
+  this._croppedImage = undefined;
+  this.cropCanvas = undefined;
+  this.cropCanvasContext = undefined;
 };
 
 Cropper.prototype.useHardwareAccelerate = function(element) {
