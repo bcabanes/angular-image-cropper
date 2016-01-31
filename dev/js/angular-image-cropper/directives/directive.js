@@ -57,8 +57,8 @@ function Cropper(options) {
   // Setup options.
   this.options = {
     checkCrossOrigin: options.checkCrossOrigin || false,
-    width: options.destWidth || 640,
-    height: options.destHeight || 480,
+    width: options.destWidth || 400,
+    height: options.destHeight || 300,
     showControls: options.showControls || true,
     fitOnInit: options.fitOnInit || false,
     zoomStep: options.zoomStep || 0.1
@@ -81,6 +81,7 @@ function Cropper(options) {
   };
 
   this.buildDOM();
+  this.useHardwareAccelerate(this.elements.image);
 
   /**
    * TODO: Create a function to regroup these things.
@@ -90,19 +91,22 @@ function Cropper(options) {
   //  self.rotateImage(180);
   //});
   this.events.on('ImageReady', this.initialize.bind(this));
-  this.events.on('');
 
 console.log(this);
 }
 
 Cropper.prototype.initialize = function() {
-  this.useHardwareAccelerate(this.elements.image);
   this.setDimensions();
+
+  if (this.width < 1 || this.height < 1) { // 1 means 100%.
+    this.fitImage();
+    this.centerImage();
+  }
   this.initializeGesture();
 
-  if (this.imageHasToFit()) {
-    this.fitImage();
-  }
+  //if (this.imageHasToFit()) {
+  //  this.fitImage();
+  //}
 
   this.centerImage();
 
@@ -114,10 +118,10 @@ Cropper.prototype.initialize = function() {
 Cropper.prototype.bindControls = function() {
   var self = this;
   this.elements.controls.rotateLeft.addEventListener('click', function() {
-    self.applyRotation(-45);
+    self.applyRotation(-90);
   });
   this.elements.controls.rotateRight.addEventListener('click', function() {
-    self.applyRotation(45);
+    self.applyRotation(90);
   });
   this.elements.controls.zoomIn.addEventListener('click', function() {
     self.applyZoom(self.zoomInFactor);
@@ -125,7 +129,7 @@ Cropper.prototype.bindControls = function() {
   this.elements.controls.zoomOut.addEventListener('click', function() {
     self.applyZoom(self.zoomOutFactor);
   });
-  this.elements.controls.fit.addEventListener('click', this.fitImage.bind(this));
+  this.elements.controls.fit.addEventListener('click', this.applyFit.bind(this));
   this.elements.controls.crop.addEventListener('click', this.cropImage.bind(this));
 };
 
@@ -139,6 +143,7 @@ Cropper.prototype.applyZoom = function(zoom) {
 
 Cropper.prototype.applyFit = function() {
   this.fitImage();
+  this.centerImage();
 };
 
 Cropper.prototype.imageHasToFit = function() {
@@ -276,26 +281,31 @@ Cropper.prototype.setDimensions = function() {
   this.zoomInFactor = 1 + this.options.zoomStep;
   this.zoomOutFactor = 1 / this.zoomInFactor;
 
-  this.imageRatio = this.options.height / this.options.width;
-  this.cropperHeight = this.elements.image.naturalHeight / this.options.height;
-  this.cropperWidth = this.elements.image.naturalWidth / this.options.width;
-  this.cropperLeft = 0;
-  this.cropperTop = 0;
-  this.cropperScale = 1;
-  this.cropperDegree = 0;
-  this.cropperX = this.options.width;
-  this.cropperY = this.options.height;
+  this.glltRatio = this.options.height / this.options.width;
+  this.width = this.elements.image.naturalWidth / this.options.width;
+  this.height = this.elements.image.naturalHeight / this.options.height;
+  this.left = 0;
+  this.top = 0;
+  this.angle = 0;
+  this.data = {
+    scale: 1,
+    degrees: 0,
+    x: 0,
+    y: 0,
+    w: this.options.width,
+    h: this.options.height
+  };
 
   // Container.
-  this.elements.container.style.height = this.cropperHeight * 100 + '%';
-  this.elements.container.style.width = this.cropperWidth * 100 + '%';
+  this.elements.container.style.width = this.width * 100 + '%';
+  this.elements.container.style.height = this.height * 100 + '%';
   this.elements.container.style.top = 0;
   this.elements.container.style.left = 0;
 
   // Wrapper.
   this.elements.wrapper.style.height = 'auto';
   this.elements.wrapper.style.width = '100%';
-  this.elements.wrapper.style.paddingTop = (this.imageRatio * 100) + '%';
+  this.elements.wrapper.style.paddingTop = (this.glltRatio * 100) + '%';
 
   this.isReady = true;
 };
@@ -340,155 +350,159 @@ Cropper.prototype.dragging = function(event) {
   event.preventDefault();
   event.stopImmediatePropagation();
 
-  p = this.getPointerPosition(event);
+  p = this.getPointerPosition(event); // Cursor position after moving.
 
-  dx = p.x - this.pointerPosition.x;
-  dy = p.y - this.pointerPosition.y;
+  dx = p.x - this.pointerPosition.x; // Difference (cursor movement) on X axes.
+  dy = p.y - this.pointerPosition.y; // Difference (cursor movement) on Y axes.
 
-  this.pointerPosition = p;
+  this.pointerPosition = p; // Update cursor position.
 
-  left = (dx === 0)? null : this.cropperLeft - dx / this.elements.wrapper.clientWidth;
-  top = (dy === 0)? null : this.cropperTop - dy / this.elements.wrapper.clientHeight;
+  /**
+   * dx > 0 if moving right.
+   * dx / clientWidth is the percentage of the wrapper's width it moved over X.
+   */
+  left = (dx === 0)? null : this.left - dx / this.elements.wrapper.clientWidth;
 
+  /**
+   * dy > 0 if moving down.
+   * dy / clientHeight is the percentage of the wrapper's width it moved over Y.
+   */
+  top = (dy === 0)? null : this.top - dy / this.elements.wrapper.clientHeight;
+
+  // Move.
   this.setOffset(left, top);
 };
 
 /**
  * Set image offset manipulations.
- * @param left
- * @param top
+ * @param left {number} is a relative number.
+ * @param top {number} is a relative number.
  */
 Cropper.prototype.setOffset = function(left, top) {
+  /**
+   * Offset left.
+   */
   if (left || left === 0) {
-    // Detect horizontal borders.
     if (left < 0) { left = 0; }
-    if (left > this.cropperWidth - 1) { left = this.cropperWidth - 1; }
+    if (left > this.width - 1) { left = this.width - 1; }
 
     this.elements.container.style.left = (-left * 100).toFixed(2) + '%';
-    this.cropperLeft = left;
-    this.cropperX = Math.round(left * this.options.width);
+    this.left = left;
+    this.data.x = Math.round(left * this.options.width);
   }
 
+  /**
+   * Offset top.
+   */
   if (top || top === 0) {
-    // Detect vertical borders.
     if (top < 0) { top = 0; }
-    if (top > this.cropperHeight - 1) { top = this.cropperHeight - 1; }
+    if (top > this.height - 1) { top = this.height - 1; }
 
     this.elements.container.style.top = (-top * 100).toFixed(2) + '%';
-    this.cropperTop = top;
-    this.cropperY = Math.round(top * this.options.height);
+    this.top = top;
+    this.data.y = Math.round(top * this.options.height);
   }
 };
 
 Cropper.prototype.fitImage = function() {
   var prevWidth, relativeRatio;
 
-  prevWidth = this.cropperWidth;
-  relativeRatio = this.cropperHeight / this.cropperWidth;
+  prevWidth = this.width;
+  relativeRatio = this.height / this.width;
 
   if (relativeRatio > 1) {
-    this.cropperWidth = 1;
-    this.cropperHeight = relativeRatio;
+    this.width = 1;
+    this.height = relativeRatio;
   } else {
-    this.cropperWidth = 1 / relativeRatio;
-    this.cropperHeight = 1;
+    this.width = 1 / relativeRatio;
+    this.height = 1;
   }
 
-  this.elements.container.style.width = (this.cropperWidth * 100).toFixed(2) + '%';
-  this.elements.container.style.height = (this.cropperHeight * 100).toFixed(2) + '%';
+  this.elements.container.style.width = (this.width * 100).toFixed(2) + '%';
+  this.elements.container.style.height = (this.height * 100).toFixed(2) + '%';
 
-  this.cropperScale *= this.cropperWidth / prevWidth;
-  this.centerImage();
+  this.data.scale *= this.width / prevWidth;
 };
 
 Cropper.prototype.centerImage = function() {
-  this.setOffset((this.cropperWidth - 1) / 2, (this.cropperHeight - 1) / 2);
+  this.setOffset((this.width - 1) / 2, (this.height - 1) / 2);
 };
 
 /**
  * Do a rotation on the image with degrees given.
- * TODO: NEED UGE COMMENTING.
- * @param degree
+ * @param degrees
  */
-Cropper.prototype.rotateImage = function(degree) {
+Cropper.prototype.rotateImage = function(degrees) {
+  // Only rotate of 90°.
+  if (!(degrees !== 0 && degrees % 90 === 0)) {
+    return;
+  }
+
   // Smallest positive equivalent angle (total rotation).
-  this.cropperDegree = (this.cropperDegree + degree) % 360;
-  if (this.cropperDegree < 0) {
-    this.cropperDegree += 360;
+  this.angle = (this.angle + degrees) % 360;
+  if (this.angle < 0) {
+    this.angle += 360;
   }
 
-  ///**
-  // * Test if the image has to change its dimensions to fit the container properly.
-  // */
-  if (this.cropperDegree % 90 === 0) {
-    this.cropperWidth = this.cropperHeight * this.imageRatio;
-    this.cropperHeight = this.cropperWidth / this.imageRatio;
-  }
-
-  /**
-   * Test if the image has to restore its original dimensions.
-   */
-  if (this.cropperDegree % 180 === 0) {
-    this.cropperHeight = this.elements.image.naturalHeight / this.options.height;
-    this.cropperWidth = this.elements.image.naturalWidth / this.options.width;
-  }
-
-  if (this.cropperWidth >= 1 && this.cropperHeight >= 1) {
-    this.elements.container.style.width = this.cropperWidth * 100 + '%';
-    this.elements.container.style.height = this.cropperHeight * 100 + '%';
-  } else {
-    this.fitImage();
-  }
-
-  var newWidth, newHeight;
   // Dimensions are changed?
-  //if (degree % 180 !== 0) {
-  //  /**
-  //   * Switch canvas dimensions (as percentages).
-  //   * canvasWidth = @width * glltWidth; canvasHeight = @height * glltHeigth
-  //   * To make canvasWidth = canvasHeight (to switch dimensions):
-  //   * => newWidth * glltWidth = @height * glltHeight
-  //   * => newWidth = @height * glltHeight / glltWidth
-  //   * => newWidth = @height * glltRatio
-  //   */
-  //  newWidth = this.cropperHeight * this.imageRatio;
-  //  newHeight = this.cropperWidth * this.imageRatio;
-  //  if (newWidth >= 1 && newHeight >= 1) {
-  //    this.elements.container.style.width = newWidth * 100 + '%';
-  //    this.elements.container.style.height = newHeight * 100 + '%';
-  //  } else {
-  //    this.fitImage();
-  //  }
-  //}
-  //
-  //// Adjust element's (image) dimensions inside the container.
-  //if (this.cropperDegree % 180 !== 0) {
-  //  var ratio = this.cropperHeight / this.cropperWidth * this.imageRatio;
-  //  newWidth = ratio;
-  //  newHeight = 1 / ratio;
-  //  this.elements.container.style.width = newWidth * 100 + '%';
-  //  this.elements.container.style.height = newHeight * 100 + '%';
-  //  this.elements.container.style.left = (1 - newWidth) / 2 * 100 + '%';
-  //  this.elements.container.style.height = (1 - newHeight) / 2 * 100 + '%';
-  //}
+  if (degrees % 180 !== 0) {
+    /**
+     * Switch canvas dimensions (as percentages).
+     * canvasWidth = @width * glltWidth; canvasHeight = @height * glltHeigth
+     * To make canvasWidth = canvasHeight (to switch dimensions):
+     * => newWidth * glltWidth = @height * glltHeight
+     * => newWidth = @height * glltHeight / glltWidth
+     * => newWidth = @height * glltRatio
+     */
+    var tempW = this.height * this.glltRatio;
+    var tempH = this.width / this.glltRatio;
+    this.width = tempW;
+    this.height = tempH;
+    if (this.width >= 1 && this.height >= 1) {
+      this.elements.container.style.width = this.width * 100 + '%';
+      this.elements.container.style.height = this.height * 100 + '%';
+    } else {
+      this.fitImage();
+    }
+  }
+
+  var newWidth = 1;
+  var newHeight = 1;
+
+  // Adjust element's (image) dimensions inside the container.
+  if (this.angle % 180 !== 0) {
+    var ratio = this.height / this.width * this.glltRatio;
+    newWidth = ratio;
+    newHeight = 1 / ratio;
+  }
+
+  this.elements.image.style.width = newWidth * 100 + '%';
+  this.elements.image.style.height = newHeight * 100 + '%';
+  this.elements.image.style.left = (1 - newWidth) / 2 * 100 + '%';
+  this.elements.image.style.top = (1 - newHeight) / 2 * 100 + '%';
 
 
-  this.elements.image.style.transform = 'rotate(' + this.cropperDegree + 'deg)';
+  this.elements.image.style.transform = 'rotate(' + this.angle + 'deg)';
   this.centerImage();
+  this.data.degrees = this.angle;
 };
 
 Cropper.prototype.zoomImage = function(factor) {
-  var originalWidth = this.cropperWidth;
+  if (factor <= 0 || factor == 1) {
+    return;
+  }
 
-  if (this.cropperWidth * factor > 1 && this.cropperHeight * factor > 1) {
-    this.cropperHeight *= factor;
-    this.cropperWidth *= factor;
-    this.elements.container.style.height = (this.cropperHeight * 100).toFixed(2) + '%';
-    this.elements.container.style.width = (this.cropperWidth * 100).toFixed(2) + '%';
-    this.cropperScale *= factor;
+  var originalWidth = this.width;
+
+  if (this.width * factor > 1 && this.height * factor > 1) {
+    this.height *= factor;
+    this.width *= factor;
+    this.elements.container.style.height = (this.height * 100).toFixed(2) + '%';
+    this.elements.container.style.width = (this.width * 100).toFixed(2) + '%';
+    this.data.scale *= factor;
   } else {
     this.fitImage();
-    factor = this.cropperWidth / originalWidth;
+    factor = this.width / originalWidth;
   }
 
   /**
@@ -502,8 +516,8 @@ Cropper.prototype.zoomImage = function(factor) {
    * offset = (prev-center-to-edge) * factor - half-window
    *
    */
-  var left = (this.cropperLeft + 0.5) * factor - 0.5;
-  var top = (this.cropperTop + 0.5) * factor - 0.5;
+  var left = (this.left + 0.5) * factor - 0.5;
+  var top = (this.top + 0.5) * factor - 0.5;
 
   this.setOffset(left, top);
 };
@@ -521,9 +535,9 @@ Cropper.prototype.cropHandler2 = function() {
 
   context = canvas.getContext('2d');
 
-  context.scale(this.cropperScale, this.cropperScale);
+  context.scale(this.data.scale, this.data.scale);
 
-  //switch (this.cropperDegree) {
+  //switch (this.angle) {
   //  case 90:
   //    context.translate(0, -this.elements.image.naturalHeight);
   //    context.translate(-this.cropperY / this.cropperScale, this.cropperX / this.cropperScale);
@@ -543,9 +557,9 @@ Cropper.prototype.cropHandler2 = function() {
 
   //context.translate(-this.cropperX / this.cropperScale, -this.cropperY / this.cropperScale);
 
-  if (this.cropperDegree > 0) {
+  if (this.angle > 0) {
 
-//var arc = this.cropperDegree * Math.PI / 180;
+//var arc = this.angle * Math.PI / 180;
 //console.log('arc :', arc);
 //var sinArc = Math.sin(arc);
 //var cosArc = Math.cos(arc);
@@ -558,15 +572,15 @@ Cropper.prototype.cropHandler2 = function() {
     // Move to the center of the canvas, before the rotation.
     context.translate(canvas.width/2, canvas.height/2);
     // Do the rotation.
-    context.rotate((Math.PI / 180) * this.cropperDegree);
+    context.rotate((Math.PI / 180) * this.angle);
     // Move back to its original origin.
     context.translate(-canvas.width/2, -canvas.height/2);
 
 
     context.drawImage(this.elements.image,
       // On source image to position the top left point to grab:
-      this.cropperX / this.cropperScale,  // X position from left.
-      this.cropperY / this.cropperScale,  // Y position form top.
+      this.data.x / this.data.scale,  // X position from left.
+      this.data.y / this.data.scale,  // Y position form top.
       this.elements.image.naturalWidth,  // Width of the rectangle to pick.
       this.elements.image.naturalHeight,  // Height of the rectangle to pick.
       // On the canvas to position the top left point to draw:
@@ -590,8 +604,8 @@ Cropper.prototype.cropHandler2 = function() {
   } else {
     context.drawImage(this.elements.image,
       // On source image to position the top left point to grab:
-      this.cropperX / this.cropperScale,  // X position from left.
-      this.cropperY / this.cropperScale,  // Y position form top.
+      this.data.x / this.data.scale,  // X position from left.
+      this.data.y / this.data.scale,  // Y position form top.
       this.elements.image.naturalWidth,  // Width of the rectangle to pick.
       this.elements.image.naturalHeight,  // Height of the rectangle to pick.
       // On the canvas to position the top left point to draw:
@@ -603,7 +617,6 @@ Cropper.prototype.cropHandler2 = function() {
   }
 
   var image = document.getElementsByClassName('result')[0].childNodes[1];
-console.log(this);
   image.src = canvas.toDataURL('image/jpeg');
 };
 
@@ -777,46 +790,3 @@ Cropper.prototype.events = new function() {
     }
   };
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
