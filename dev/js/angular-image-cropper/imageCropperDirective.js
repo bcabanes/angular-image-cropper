@@ -2,7 +2,7 @@
   'use strict';
 
   angular
-    .module('imageCropper')
+    .module('imageCropper', [])
     .directive('imageCropper', directive);
 
   function directive() {
