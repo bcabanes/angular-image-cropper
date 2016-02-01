@@ -523,101 +523,50 @@ Cropper.prototype.zoomImage = function(factor) {
 };
 
 Cropper.prototype.cropImage = function() {
-  this.cropHandler2();
+  return this.cropHandler();
 };
 
-Cropper.prototype.cropHandler2 = function() {
+Cropper.prototype.cropHandler = function() {
   var canvas, context;
 
   canvas = document.createElement('canvas');
   canvas.height = this.options.height;
   canvas.width = this.options.width;
 
-  context = canvas.getContext('2d');
+  var cx = -canvas.width / 2;
+  var cy = -canvas.height / 2;
 
+  context = canvas.getContext('2d');
+  context.translate(-cx,-cy); //move to centre of canvas
+  context.rotate(this.data.degrees * Math.PI/180);
   context.scale(this.data.scale, this.data.scale);
 
-  //switch (this.angle) {
-  //  case 90:
-  //    context.translate(0, -this.elements.image.naturalHeight);
-  //    context.translate(-this.cropperY / this.cropperScale, this.cropperX / this.cropperScale);
-  //    break;
-  //  case 180:
-  //    context.translate(-this.elements.image.naturalWidth, -this.elements.image.naturalHeight);
-  //    context.translate(this.cropperY / this.cropperScale, this.cropperX / this.cropperScale);
-  //    break;
-  //  case 270:
-  //    context.translate(-this.elements.image.naturalWidth, 0);
-  //    context.translate(this.cropperY / this.cropperScale, -this.cropperX / this.cropperScale);
-  //    break;
-  //  default:
-  //    context.translate(-this.cropperX / this.cropperScale, this.cropperY / this.cropperScale);
-  //}
-
-
-  //context.translate(-this.cropperX / this.cropperScale, -this.cropperY / this.cropperScale);
-
-  if (this.angle > 0) {
-
-//var arc = this.angle * Math.PI / 180;
-//console.log('arc :', arc);
-//var sinArc = Math.sin(arc);
-//var cosArc = Math.cos(arc);
-//
-//var newWidth = this.elements.image.naturalWidth * cosArc + this.elements.image.naturalHeight * sinArc;
-//var newHeight = this.elements.image.naturalWidth * sinArc + this.elements.image.naturalHeight * cosArc;
-//console.log(this.elements.image.naturalWidth, newWidth);
-//console.log(this.elements.image.naturalHeight, newHeight);
-
-    // Move to the center of the canvas, before the rotation.
-    context.translate(canvas.width/2, canvas.height/2);
-    // Do the rotation.
-    context.rotate((Math.PI / 180) * this.angle);
-    // Move back to its original origin.
-    context.translate(-canvas.width/2, -canvas.height/2);
-
-
+  if(this.data.degrees == 0) { // simple offsets from canvas centre & scale
     context.drawImage(this.elements.image,
-      // On source image to position the top left point to grab:
-      this.data.x / this.data.scale,  // X position from left.
-      this.data.y / this.data.scale,  // Y position form top.
-      this.elements.image.naturalWidth,  // Width of the rectangle to pick.
-      this.elements.image.naturalHeight,  // Height of the rectangle to pick.
-      // On the canvas to position the top left point to draw:
-      0,  // X position from left
-      0,  // Y position from left
-      this.elements.image.naturalWidth,  // Width of the rectangle to draw.
-      this.elements.image.naturalHeight  // Height of the rectangle to draw.
+      (cx - this.data.x) / this.data.scale,
+      (cy - this.data.y) / this.data.scale
     );
-
-    //context.translate(-this.cropperX / this.cropperScale, -this.cropperY / this.cropperScale);
-    //context.drawImage(this.elements.image, 0, 0);
-
-
-    // Draw it up and to the left by half the width and height of the image.
-    //context.drawImage(this.elements.image,
-    //  -this.elements.image.naturalWidth / 2,
-    //  -this.elements.image.naturalHeight / 2,
-    //  this.elements.image.naturalWidth,
-    //  this.elements.image.naturalHeight);
-
-  } else {
+  } else if(this.data.degrees == 90) { // swap axis and reverse the new y origin
     context.drawImage(this.elements.image,
-      // On source image to position the top left point to grab:
-      this.data.x / this.data.scale,  // X position from left.
-      this.data.y / this.data.scale,  // Y position form top.
-      this.elements.image.naturalWidth,  // Width of the rectangle to pick.
-      this.elements.image.naturalHeight,  // Height of the rectangle to pick.
-      // On the canvas to position the top left point to draw:
-      0,  // X position from left
-      0,  // Y position from left
-      this.elements.image.naturalWidth,  // Width of the rectangle to draw.
-      this.elements.image.naturalHeight  // Height of the rectangle to draw.
+      (cy - this.data.y) / this.data.scale,
+      (-1 * this.elements.image.naturalHeight) + ((-cx + this.data.x) / this.data.scale)
+    );
+  } else if(this.data.degrees == 180) { // reverse both origins
+    context.drawImage(this.elements.image,
+      (-1 * this.elements.image.naturalWidth) + ((-cx + this.data.x) / this.data.scale),
+      (-1 * this.elements.image.naturalHeight) + ((-cy + this.data.y) / this.data.scale)
+    );
+  } else if(this.data.degrees == 270) { // swap axis and reverse the new x origin
+    context.drawImage(this.elements.image,
+      (-1 * this.elements.image.naturalWidth) + ((-cy + this.data.y) / this.data.scale),
+      (cx - this.data.x) / this.data.scale
     );
   }
 
   var image = document.getElementsByClassName('result')[0].childNodes[1];
   image.src = canvas.toDataURL('image/jpeg');
+
+  return canvas.toDataURL('image/jpeg');
 };
 
 Cropper.prototype.useHardwareAccelerate = function(element) {
