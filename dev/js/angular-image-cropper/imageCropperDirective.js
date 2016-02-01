@@ -7,8 +7,9 @@
       return {
         restrict: 'E',
         scope: {
-          checkCrossOrigin: '@',
           centerOnInit: '@',
+          checkCrossOrigin: '@',
+          api: '&',
           fitOnInit: '@',
           height: '@',
           imageUrl: '@',
@@ -21,6 +22,9 @@
         controller: function() {
           var self = this;
 
+          // Get callback.
+          this.readyCallback = this.api();
+
           // Eval for boolean values.
           this.fitOnInit = eval(this.fitOnInit);
           this.centerOnInit = eval(this.centerOnInit);
@@ -29,7 +33,7 @@
 
           this.init = function() {
             this.target = this.element;
-            this.cropper = new Cropper(self);
+            this.api = new Cropper(self);
           }
         },
         'link': function(scope, element, attributes, controller) {
@@ -47,12 +51,18 @@
  * @constructor
  */
 function Cropper(options) {
+
+  if (!options.imageUrl) {
+    throw new Error('Cropper: No image url given.');
+  }
+
   this.isReady = false;
   this.originalUrl = options.imageUrl;
 
   // Default options.
   var defaults = {
     checkCrossOrigin: false,
+    readyCallback: undefined,
     width: 400,
     height: 300,
     imageUrl: undefined,
@@ -85,12 +95,27 @@ function Cropper(options) {
   this.buildDOM();
   this.useHardwareAccelerate(this.elements.image);
 
+  // API Setup:
+  var api = {
+    crop: this.cropImage.bind(this),
+    fit: this.applyFit.bind(this),
+    rotate: this.applyRotation.bind(this),
+    zoom: this.applyZoom.bind(this)
+  };
+
   /**
    * Initialization of the Cropper (dimensions, event binding...).
    */
   this.events.on('ImageReady', this.initialize.bind(this));
 
-  return this;
+  /**
+   * Send API when image is ready if readyCallback is true.
+   */
+  if (this.options.readyCallback) {
+    this.events.on('ImageReady', function() {
+      this.options.readyCallback(api);
+    }.bind(this));
+  }
 }
 
 Cropper.prototype.initialize = function() {
@@ -184,15 +209,15 @@ Cropper.prototype.buildDOM = function() {
   _elements.controls.wrapper.className = 'imgCropper-controls';
 
   _elements.controls.rotateLeft = document.createElement('button');
-  _elements.controls.rotateLeft.innerHTML = ' &lt; ';
+  _elements.controls.rotateLeft.innerHTML = ' ⟲ ';
   _elements.controls.rotateRight = document.createElement('button');
-  _elements.controls.rotateRight.innerHTML = ' &gt; ';
+  _elements.controls.rotateRight.innerHTML = ' ⟳ ';
   _elements.controls.zoomIn = document.createElement('button');
-  _elements.controls.zoomIn.innerHTML = ' + ';
+  _elements.controls.zoomIn.innerHTML = ' ⊕ ';
   _elements.controls.zoomOut = document.createElement('button');
-  _elements.controls.zoomOut.innerHTML = ' - ';
+  _elements.controls.zoomOut.innerHTML = ' ⊖ ';
   _elements.controls.fit = document.createElement('button');
-  _elements.controls.fit.innerHTML = ' [ ] ';
+  _elements.controls.fit.innerHTML = ' ⊞ ';
 
   _elements.controls.crop = document.createElement('button');
   _elements.controls.crop.innerHTML = ' ⧉ ';
@@ -432,7 +457,7 @@ Cropper.prototype.centerImage = function() {
 Cropper.prototype.rotateImage = function(degrees) {
   // Only rotate of 90°.
   if (!(degrees !== 0 && degrees % 90 === 0)) {
-    return;
+    throw new Error('Cropper: Support only multiple of 90° for rotation.');
   }
 
   // Smallest positive equivalent angle (total rotation).
@@ -576,7 +601,7 @@ Cropper.prototype.extend = function(defaults, options) {
   var defaultsKeys = Object.keys(defaults);
 
   defaultsKeys.forEach(function(key, index, keysArray) {
-    if (options[key]) {
+    if (options[key] !== undefined) {
       target[key] = options[key];
     }
   });
