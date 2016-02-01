@@ -224,10 +224,10 @@ Cropper.prototype.buildDOM = function() {
 
   // Target -> Wrapper -> buttons
   _elements.controls.wrapper.appendChild(_elements.controls.rotateLeft);
-  _elements.controls.wrapper.appendChild(_elements.controls.zoomIn);
+  _elements.controls.wrapper.appendChild(_elements.controls.zoomOut);
   _elements.controls.wrapper.appendChild(_elements.controls.fit);
   _elements.controls.wrapper.appendChild(_elements.controls.crop);
-  _elements.controls.wrapper.appendChild(_elements.controls.zoomOut);
+  _elements.controls.wrapper.appendChild(_elements.controls.zoomIn);
   _elements.controls.wrapper.appendChild(_elements.controls.rotateRight);
   _elements.target.appendChild(_elements.controls.wrapper);
 
@@ -246,7 +246,6 @@ Cropper.prototype.loadImage = function() {
 
   xhr = new XMLHttpRequest();
   xhr.onerror = xhr.onabort = function(response) {
-    // TODO: Try to continue.
     self.originalBase64 = self.originalUrl;
     self.setupImageSRC();
   };
