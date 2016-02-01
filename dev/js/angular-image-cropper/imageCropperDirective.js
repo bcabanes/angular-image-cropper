@@ -3,52 +3,59 @@
 
   angular
     .module('imageCropper', [])
-    .directive('imageCropper', directive);
+    .directive('imageCropper', function() {
+      return {
+        restrict: 'E',
+        scope: {
+          checkCrossOrigin: '@',
+          centerOnInit: '@',
+          fitOnInit: '@',
+          height: '@',
+          imageUrl: '@',
+          showControls: '@',
+          width: '@',
+          zoomStep: '@'
+        },
+        bindToController: true,
+        controllerAs: 'vm',
+        controller: function() {
+          var self = this;
 
-  function directive() {
-    return {
-      'restrict': 'E',
-      'scope': {
-        'image': '@',
-        'destWidth': '@',
-        'destHeight': '@',
-        'zoomStep': '@',
-        'init': '@',
-        'croppedImage': '=',
-        'showControls': '=',
-        'fitOnInit': '='
-      },
-      bindToController: true,
-      controllerAs: 'vm',
-      controller: function() {
-        var self = this;
-        this.init = function() {
-          this.cropper = new Cropper({
-            imageURL: self.image,
-            target: self.element,
-            checkCrossOrigin: true
-          });
+          // Eval for boolean values.
+          this.fitOnInit = eval(this.fitOnInit);
+          this.centerOnInit = eval(this.centerOnInit);
+          this.checkCrossOrigin = eval(this.checkCrossOrigin);
+          this.showControls = eval(this.showControls);
+
+          this.init = function() {
+            this.target = this.element;
+            this.cropper = new Cropper(self);
+          }
+        },
+        'link': function(scope, element, attributes, controller) {
+          controller.element = element[0];
+          controller.init();
         }
-      },
-      'link': function(scope, element, attributes, controller) {
-        controller.element = element[0];
-        controller.init();
-      }
-    };
-  }
+      };
+  });
 })(angular);
 
-
+/**
+ * Cropper.
+ * @param options
+ * @returns {Cropper}
+ * @constructor
+ */
 function Cropper(options) {
   this.isReady = false;
-  this.originalURL = options.imageURL;
+  this.originalUrl = options.imageUrl;
 
   // Default options.
   var defaults = {
     checkCrossOrigin: false,
     width: 400,
     height: 300,
-    imageURL: undefined,
+    imageUrl: undefined,
     target: undefined,
     showControls: true,
     fitOnInit: false,
@@ -82,6 +89,8 @@ function Cropper(options) {
    * Initialization of the Cropper (dimensions, event binding...).
    */
   this.events.on('ImageReady', this.initialize.bind(this));
+
+  return this;
 }
 
 Cropper.prototype.initialize = function() {
@@ -186,15 +195,15 @@ Cropper.prototype.buildDOM = function() {
   _elements.controls.fit.innerHTML = ' [ ] ';
 
   _elements.controls.crop = document.createElement('button');
-  _elements.controls.crop.innerHTML = ' Crop ';
+  _elements.controls.crop.innerHTML = ' ⧉ ';
 
   // Target -> Wrapper -> buttons
   _elements.controls.wrapper.appendChild(_elements.controls.rotateLeft);
-  _elements.controls.wrapper.appendChild(_elements.controls.rotateRight);
   _elements.controls.wrapper.appendChild(_elements.controls.zoomIn);
-  _elements.controls.wrapper.appendChild(_elements.controls.zoomOut);
   _elements.controls.wrapper.appendChild(_elements.controls.fit);
   _elements.controls.wrapper.appendChild(_elements.controls.crop);
+  _elements.controls.wrapper.appendChild(_elements.controls.zoomOut);
+  _elements.controls.wrapper.appendChild(_elements.controls.rotateRight);
   _elements.target.appendChild(_elements.controls.wrapper);
 
   this.loadImage();
@@ -205,15 +214,15 @@ Cropper.prototype.loadImage = function() {
   var xhr;
 
   // XMLHttpRequest disallows to open a Data URL in some browsers like IE11 and Safari.
-  if (/^data\:/.test(this.originalURL)) {
-    this.originalBase64 = this.originalURL;
+  if (/^data\:/.test(this.originalUrl)) {
+    this.originalBase64 = this.originalUrl;
     this.setupImageSRC();
   }
 
   xhr = new XMLHttpRequest();
   xhr.onerror = xhr.onabort = function(response) {
     // TODO: Try to continue.
-    self.originalBase64 = self.originalURL;
+    self.originalBase64 = self.originalUrl;
     self.setupImageSRC();
   };
 
@@ -223,7 +232,7 @@ Cropper.prototype.loadImage = function() {
     self.originalBase64 = 'data:image/jpeg;base64,' + self.base64ArrayBuffer(this.response);
     self.setupImageSRC();
   };
-  xhr.open('get', this.originalURL, true);
+  xhr.open('get', this.originalUrl, true);
   //xhr.setRequestHeader('Content-Type', 'image/jpg'); // TODO: Auto determine the image MIME's type.
   xhr.responseType = 'arraybuffer';
   xhr.send();
@@ -235,16 +244,16 @@ Cropper.prototype.loadImage = function() {
 Cropper.prototype.setupImageSRC = function() {
   var _image = this.elements.image;
 
-  if (this.options.checkCrossOrigin && this.isCrossOrigin(this.originalURL)) {
+  if (this.options.checkCrossOrigin && this.isCrossOrigin(this.originalUrl)) {
     this.crossOrigin = _image.crossOrigin;
 
     if (this.crossOrigin) {
-      this.crossOrigin = this.originalURL;
+      this.crossOrigin = this.originalUrl;
     } else {
       this.crossOrigin = 'anonymous';
 
       // Bust cache with a timestamp.
-      this.crossOriginUrl = this.addTimestamp(this.originalURL);
+      this.crossOriginUrl = this.addTimestamp(this.originalUrl);
     }
   }
 
@@ -253,7 +262,7 @@ Cropper.prototype.setupImageSRC = function() {
   }
 
   // Setup image src.
-  this.elements.image.src = this.crossOriginUrl || this.originalURL; // Need to verify.
+  this.elements.image.src = this.crossOriginUrl || this.originalUrl; // Need to verify.
   //this.elements.image.src = this.originalBase64; // Need to verify.
 
   // Waiting the image as loaded to trigger event.
@@ -269,7 +278,7 @@ Cropper.prototype.setDimensions = function() {
   this.zoomInFactor = 1 + this.options.zoomStep;
   this.zoomOutFactor = 1 / this.zoomInFactor;
 
-  this.glltRatio = this.options.height / this.options.width;
+  this.imageRatio = this.options.height / this.options.width;
   this.width = this.elements.image.naturalWidth / this.options.width;
   this.height = this.elements.image.naturalHeight / this.options.height;
   this.left = 0;
@@ -293,7 +302,7 @@ Cropper.prototype.setDimensions = function() {
   // Wrapper.
   this.elements.wrapper.style.height = 'auto';
   this.elements.wrapper.style.width = '100%';
-  this.elements.wrapper.style.paddingTop = (this.glltRatio * 100) + '%';
+  this.elements.wrapper.style.paddingTop = (this.imageRatio * 100) + '%';
 
   this.isReady = true;
 };
@@ -436,14 +445,14 @@ Cropper.prototype.rotateImage = function(degrees) {
   if (degrees % 180 !== 0) {
     /**
      * Switch canvas dimensions (as percentages).
-     * canvasWidth = @width * glltWidth; canvasHeight = @height * glltHeigth
+     * canvasWidth = @width * this.options.width; canvasHeight = @height * this.options.height
      * To make canvasWidth = canvasHeight (to switch dimensions):
-     * => newWidth * glltWidth = @height * glltHeight
-     * => newWidth = @height * glltHeight / glltWidth
-     * => newWidth = @height * glltRatio
+     * => newWidth * this.options.width = @height * this.options.height
+     * => newWidth = @height * this.options.height / this.options.width
+     * => newWidth = @height * this.imageRatio
      */
-    var tempW = this.height * this.glltRatio;
-    var tempH = this.width / this.glltRatio;
+    var tempW = this.height * this.imageRatio;
+    var tempH = this.width / this.imageRatio;
     this.width = tempW;
     this.height = tempH;
     if (this.width >= 1 && this.height >= 1) {
@@ -459,7 +468,7 @@ Cropper.prototype.rotateImage = function(degrees) {
 
   // Adjust element's (image) dimensions inside the container.
   if (this.angle % 180 !== 0) {
-    var ratio = this.height / this.width * this.glltRatio;
+    var ratio = this.height / this.width * this.imageRatio;
     newWidth = ratio;
     newHeight = 1 / ratio;
   }
