@@ -30,13 +30,11 @@
           });
         }
       },
-      'link': link
+      'link': function(scope, element, attributes, controller) {
+        controller.element = element[0];
+        controller.init();
+      }
     };
-
-    function link(scope, element, attributes, controller) {
-      controller.element = element[0];
-      controller.init();
-    }
   }
 })(angular);
 
