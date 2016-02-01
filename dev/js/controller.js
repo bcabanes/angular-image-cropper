@@ -21,7 +21,8 @@
       //  cropperApi.zoom(3);
       //  cropperApi.rotate(270);
       //  cropperApi.fit();
-      //  cropperApi.crop();
+      //  vm.resultImage = cropperApi.crop();
+      //  $scope.$apply(); // Apply the changes.
       //};
 
       /**

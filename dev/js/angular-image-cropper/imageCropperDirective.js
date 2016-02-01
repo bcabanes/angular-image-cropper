@@ -25,6 +25,7 @@
 
           // Get callback.
           this.apiCallback = this.api();
+          this.cropCallback = this.cropCallback();
 
           // Eval for boolean values.
           this.fitOnInit = eval(this.fitOnInit);
@@ -115,7 +116,7 @@ function Cropper(options) {
    */
   if (this.options.cropCallback) {
     this.events.on('Cropped', function(base64) {
-      this.options.cropCallback()(base64);
+      this.options.cropCallback(base64);
     }.bind(this));
   }
 
