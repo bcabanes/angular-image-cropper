@@ -5,13 +5,7 @@
     .module('imageCropper')
     .directive('imageCropper', directive);
 
-  directive.$inject = [
-    'Cropper',
-    'defaultConfig',
-    'Helper'
-  ];
-
-  function directive(mCropper, defaultConfig, Helper) {
+  function directive() {
     return {
       'restrict': 'E',
       'scope': {
@@ -24,27 +18,24 @@
         'showControls': '=',
         'fitOnInit': '='
       },
-      /*'template': ['<div class="frame">',
-        '<div class="imgCropper-window">',
-        '<div class="imgCropper-canvas">',
-        '<img ng-src="{{image}}">',
-        '</div></div></div>',
-        '<div id="controls" ng-if="showControls">',
-        '<button ng-click="rotateLeft()" type="button" title="Rotate left"> &lt; </button>',
-        '<button ng-click="zoomOut()" type="button" title="Zoom out"> - </button>',
-        '<button ng-click="fit()" type="button" title="Fit image"> [ ] </button>',
-        '<button ng-click="zoomIn()" type="button" title="Zoom in"> + </button>',
-        '<button ng-click="rotateRight()" type="button" title="Rotate right"> &gt; </button>',
-        '</div>'].join(''),*/
+      bindToController: true,
+      controllerAs: 'vm',
+      controller: function() {
+        var self = this;
+        this.init = function() {
+          this.cropper = new Cropper({
+            imageURL: self.image,
+            target: self.element,
+            checkCrossOrigin: true
+          });
+        }
+      },
       'link': link
     };
 
-    function link(scope, element, attributes) {
-      new Cropper({
-        imageURL: scope.image,
-        target: element[0],
-        checkCrossOrigin: true
-      });
+    function link(scope, element, attributes, controller) {
+      controller.element = element[0];
+      controller.init();
     }
   }
 })(angular);
@@ -54,15 +45,21 @@ function Cropper(options) {
   this.isReady = false;
   this.originalURL = options.imageURL;
 
-  // Setup options.
-  this.options = {
-    checkCrossOrigin: options.checkCrossOrigin || false,
-    width: options.destWidth || 400,
-    height: options.destHeight || 300,
-    showControls: options.showControls || true,
-    fitOnInit: options.fitOnInit || false,
-    zoomStep: options.zoomStep || 0.1
+  // Default options.
+  var defaults = {
+    checkCrossOrigin: false,
+    width: 400,
+    height: 300,
+    imageURL: undefined,
+    target: undefined,
+    showControls: true,
+    fitOnInit: false,
+    centerOnInit: false,
+    zoomStep: 0.1
   };
+
+  // Setup options.
+  this.options = this.extend(defaults, options);
 
   // Setup gesture events.
   this.gesture = {};
@@ -84,31 +81,23 @@ function Cropper(options) {
   this.useHardwareAccelerate(this.elements.image);
 
   /**
-   * TODO: Create a function to regroup these things.
+   * Initialization of the Cropper (dimensions, event binding...).
    */
-  //this.events.on('ImageReady', function() {
-  //  self.zoomImage(3.5);
-  //  self.rotateImage(180);
-  //});
   this.events.on('ImageReady', this.initialize.bind(this));
-
-console.log(this);
 }
 
 Cropper.prototype.initialize = function() {
   this.setDimensions();
 
-  if (this.width < 1 || this.height < 1) { // 1 means 100%.
+  if (this.imageHasToFit()) {
     this.fitImage();
     this.centerImage();
   }
   this.initializeGesture();
 
-  //if (this.imageHasToFit()) {
-  //  this.fitImage();
-  //}
-
-  this.centerImage();
+  if (this.options.centerOnInit) {
+    this.centerImage();
+  }
 
   if (this.options.showControls) {
     this.bindControls();
@@ -149,6 +138,7 @@ Cropper.prototype.applyFit = function() {
 Cropper.prototype.imageHasToFit = function() {
   return this.elements.image.naturalWidth < this.options.width ||
     this.elements.image.naturalHeight < this.options.height ||
+    this.width < 1 || this.height < 1 || // 1 means 100%.
     this.options.fitOnInit;
 };
 
@@ -572,6 +562,19 @@ Cropper.prototype.cropHandler = function() {
 Cropper.prototype.useHardwareAccelerate = function(element) {
   element.style.perspective = '1000px';
   element.style.backfaceVisibility = 'hidden';
+};
+
+Cropper.prototype.extend = function(defaults, options) {
+  var target = defaults;
+  var defaultsKeys = Object.keys(defaults);
+
+  defaultsKeys.forEach(function(key, index, keysArray) {
+    if (options[key]) {
+      target[key] = options[key];
+    }
+  });
+
+  return target;
 };
 
 /**
