@@ -9,6 +9,7 @@
         scope: {
           centerOnInit: '@',
           checkCrossOrigin: '@',
+          cropCallback: '&',
           api: '&',
           fitOnInit: '@',
           height: '@',
@@ -23,7 +24,7 @@
           var self = this;
 
           // Get callback.
-          this.readyCallback = this.api();
+          this.apiCallback = this.api();
 
           // Eval for boolean values.
           this.fitOnInit = eval(this.fitOnInit);
@@ -62,7 +63,8 @@ function Cropper(options) {
   // Default options.
   var defaults = {
     checkCrossOrigin: false,
-    readyCallback: undefined,
+    apiCallback: undefined,
+    cropCallback: undefined,
     width: 400,
     height: 300,
     imageUrl: undefined,
@@ -109,11 +111,20 @@ function Cropper(options) {
   this.events.on('ImageReady', this.initialize.bind(this));
 
   /**
+   * Execute callback function when cropped.
+   */
+  if (this.options.cropCallback) {
+    this.events.on('Cropped', function(base64) {
+      this.options.cropCallback()(base64);
+    }.bind(this));
+  }
+
+  /**
    * Send API when image is ready if readyCallback is true.
    */
-  if (this.options.readyCallback) {
+  if (this.options.apiCallback) {
     this.events.on('ImageReady', function() {
-      this.options.readyCallback(api);
+      this.options.apiCallback(api);
     }.bind(this));
   }
 }
@@ -584,10 +595,9 @@ Cropper.prototype.cropHandler = function() {
     );
   }
 
-  var image = document.getElementsByClassName('result')[0].childNodes[1];
-  image.src = canvas.toDataURL('image/jpeg');
-
-  return canvas.toDataURL('image/jpeg');
+  var base64 = canvas.toDataURL('image/jpeg');
+  this.events.triggerHandler('Cropped', base64);
+  return base64;
 };
 
 Cropper.prototype.useHardwareAccelerate = function(element) {

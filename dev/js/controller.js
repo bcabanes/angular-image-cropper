@@ -2,7 +2,7 @@
   'use strict';
   angular
     .module('app')
-    .controller('mainController', function() {
+    .controller('mainController', ['$scope', function($scope) {
       /* jshint validthis: true */
       var vm = this;
 
@@ -10,6 +10,11 @@
       vm.imageUrl = 'assets/images/unsplash_' + getRandomInt(1,7) + '.jpg';
       vm.showControls = true;
       vm.fit = false;
+
+      vm.updateResultImage = function(base64) {
+        vm.resultImage = base64;
+        $scope.$apply(); // Apply the changes.
+      };
 
       // Cropper API available when image is ready.
       //vm.cropperApi = function(cropperApi) {
@@ -25,5 +30,5 @@
       function getRandomInt(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
       }
-    });
+    }]);
 })(angular);

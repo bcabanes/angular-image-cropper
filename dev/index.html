@@ -31,10 +31,11 @@
           fit-on-init="false"
           center-on-init="true"
           api="vm.cropperApi"
+          crop-callback="vm.updateResultImage"
         ></image-cropper>
 
         <div class="result">
-          <img class="frame" ng-src="{{vm.imageResult}}" width="50%">
+          <img class="frame" ng-src="{{vm.resultImage}}" width="50%">
         </div>
       </div>
     </section>
