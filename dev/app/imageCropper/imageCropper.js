@@ -207,7 +207,7 @@ Cropper.prototype.loadImage = function() {
   // XMLHttpRequest disallows to open a Data URL in some browsers like IE11 and Safari.
   if (/^data\:/.test(this.originalUrl)) {
     this.originalBase64 = this.originalUrl;
-    this.setupImageSRC();
+    return this.setupImageSRC();
   }
 
   xhr = new XMLHttpRequest();
@@ -470,6 +470,11 @@ Cropper.prototype.rotateImage = function(degrees) {
 
 
   this.elements.image.style.transform = 'rotate(' + this.angle + 'deg)';
+  this.elements.image.style.webkitTransform = 'rotate(' + this.angle + 'deg)';
+  this.elements.image.style.mozTransform = 'rotate(' + this.angle + 'deg)';
+  this.elements.image.style.msTransform = 'rotate(' + this.angle + 'deg)';
+  this.elements.image.style.oTransform = 'rotate(' + this.angle + 'deg)';
+
   this.centerImage();
   this.data.degrees = this.angle;
 };
