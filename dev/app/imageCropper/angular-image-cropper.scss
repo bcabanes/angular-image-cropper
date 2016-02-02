@@ -47,30 +47,3 @@ body.imgCropper-dragging, body.imgCropper-dragging * {
   width: auto        !important;
   height: auto       !important;
 }
-
-// Page.
-.wrapp {
-  margin: 3rem auto;
-  max-width: 40rem;
-  text-align: center;
-  width: 100%;
-}
-
-.imgCropper-controls {
-  background: #FAFAFA;
-  tet-align: center;
-}
-button {
-  margin: 0 1rem;
-  padding: 0.8rem 1rem;
-  background: transparent;
-  border: none;
-  display: inline-block;
-  font-size: 1.5rem;
-}
-button:focus,
-button:hover {
-  color: #4371D0;
-  cursor: pointer;
-  outline: none;
-}
