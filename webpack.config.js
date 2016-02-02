@@ -33,8 +33,10 @@ var config = {
 };
 
 if (process.env.NODE_ENV === 'production') {
+  config.entry = './app/imageCropper/imageCropperDirective';
   config.output.path = __dirname + '/dist';
-  config.plugins.push(new webpack.optimize.UglifyJsPlugin());
+  config.output.filename = 'angularImageCropper.js';
+  //config.plugins.push(new webpack.optimize.UglifyJsPlugin());
   config.devtool = 'source-map';
 }
 
