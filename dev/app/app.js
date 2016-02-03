@@ -11,7 +11,6 @@ angular
 
     // Some cropper options.
     vm.imageUrl = 'assets/images/unsplash_' + getRandomInt(1,7) + '.jpg';
-    vm.imageUrl = 'https://www.portablenorthpole.com/assets/wpdb/images/3/2015/09/HOME-Create-video.a06a5714.png';
     vm.showControls = true;
     vm.fit = false;
 
