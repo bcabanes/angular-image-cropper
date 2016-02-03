@@ -4,7 +4,7 @@
   "description": "AngularJS directive for cropping images (responsive|touch).",
   "main": "dist/angular-image-cropper.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "NODE_ENV=test karma start",
     "serve": "node node_modules/.bin/webpack-dev-server --content-base dev",
     "build": "NODE_ENV=production node node_modules/.bin/webpack"
   },
@@ -36,7 +36,14 @@
     "angular": "1.4.9"
   },
   "devDependencies": {
+    "chai": "3.5.0",
     "css-loader": "0.23.1",
+    "karma": "0.13.19",
+    "karma-chai": "0.1.0",
+    "karma-chrome-launcher": "0.2.2",
+    "karma-mocha": "0.2.1",
+    "karma-webpack": "1.7.0",
+    "mocha": "2.4.5",
     "node-sass": "3.4.2",
     "sass-loader": "3.1.2",
     "style-loader": "0.13.0",

@@ -1,6 +1,10 @@
 require('./angular-image-cropper.scss');
 var Cropper = require('./imageCropper');
 
+if (ON_TEST) {
+  require('./imageCropperDirective.test')(angular);
+}
+
 module.exports = function(angular) {
   angular
     .module('imageCropper', [])
