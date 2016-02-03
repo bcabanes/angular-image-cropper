@@ -1,4 +1,9 @@
 var angular = require('angular');
+
+if (ON_TEST) {
+  require('angular-mocks/angular-mocks');
+}
+
 require('./imageCropper/imageCropperDirective')(angular);
 
 require('./app.css');
