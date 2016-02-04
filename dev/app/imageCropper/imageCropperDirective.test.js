@@ -49,7 +49,7 @@ module.exports = function(angular) {
         done();
       };
 
-      var template = '<image-cropper image-url="' + imageUrl + '" api="getCropperApi"></image-cropper>';
+      var template = '<image-cropper image-url="' + imageUrl + '" api="getCropperApi" show-controls="false"></image-cropper>';
       var element = $compile(template)($scope);
       $scope.$digest();
     });
@@ -66,6 +66,24 @@ module.exports = function(angular) {
         var image = api.crop();
         var test = image.replace(image.substr(0, image.indexOf(',') + 1), '');
         expect(test).to.equal(testReference.cropped);
+        done();
+      };
+
+      var template = '<image-cropper image-url="' + imageUrl + '" api="getCropperApi" show-controls="false"></image-cropper>';
+      var element = $compile(template)($scope);
+      $scope.$digest();
+    });
+
+    it('should throw an error if degrees aren\'t %90', function(done) {
+      var testReference = require('./imageTestReferences/w400-h300-z3-f1-r270'),
+        imageUrl = 'data:image/jpeg;base64,' + testReference.original,
+        $scope = $rootScope.$new();
+
+      $scope.getCropperApi = function(api) {
+        expect(function() {
+          api.zoom(3);
+          api.rotate(25);
+        }).to.throw(Error, /Support only multiple of 90° for rotation./gi);
         done();
       };
 
