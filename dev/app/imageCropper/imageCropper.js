@@ -57,7 +57,8 @@ function Cropper(options) {
     crop: this.cropImage.bind(this),
     fit: this.applyFit.bind(this),
     rotate: this.applyRotation.bind(this),
-    zoom: this.applyZoom.bind(this)
+    zoom: this.applyZoom.bind(this),
+    remove: this.remove.bind(this)
   };
 
   /**
@@ -198,6 +199,15 @@ Cropper.prototype.buildDOM = function() {
   _elements.target.appendChild(_elements.controls.wrapper);
 
   this.loadImage();
+};
+
+/**
+ * Remove all DOM element parts of the Cropper.
+ */
+Cropper.prototype.remove = function() {
+  var elements = this.elements;
+  elements.target.removeChild(elements.wrapper);
+  elements.target.removeChild(elements.controls.wrapper);
 };
 
 Cropper.prototype.loadImage = function() {
