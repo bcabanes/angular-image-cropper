@@ -2,7 +2,13 @@ var path = require('path');
 var webpackConfig = require('./webpack.config');
 var entry = path.resolve(webpackConfig.context, webpackConfig.entry);
 var preprocessors = {};
-preprocessors[entry] = ['webpack'];
+preprocessors[entry] = ['webpack', 'coverage'];
+
+webpackConfig.module.preLoaders = [{
+  test: /\.js$/,
+  exclude: /node_modules/,
+  loader: 'istanbul-instrumenter-loader'
+}];
 
 module.exports = function(config) {
   config.set({
@@ -34,7 +40,7 @@ module.exports = function(config) {
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['progress'],
+    reporters: ['progress', 'coverage'],
 
 
     // web server port
@@ -67,11 +73,19 @@ module.exports = function(config) {
     // how many browser should be started simultaneous
     concurrency: Infinity,
 
+    coverageReporter: {
+      dir: 'coverage/',
+      reporters: [
+        { type: 'html', subdir: 'html' }
+      ]
+    },
+
     plugins: [
       require('karma-webpack'),
       'karma-chai',
       'karma-mocha',
-      'karma-chrome-launcher'
+      'karma-chrome-launcher',
+      'karma-coverage'
     ]
   });
 };
