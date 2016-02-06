@@ -1,3 +1,8 @@
+.idea
 bower_components
+coverage
+dist
 node_modules
-dev/assets/styles/css/angular-image-cropper.css
+
+npm-debug.log
+
