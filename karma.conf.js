@@ -10,6 +10,11 @@ webpackConfig.module.preLoaders = [{
   loader: 'istanbul-instrumenter-loader'
 }];
 
+var isSingleRun = false;
+if (process.env.SINGLE_RUN) {
+  isSingleRun = true;
+}
+
 module.exports = function(config) {
   config.set({
 
@@ -62,12 +67,12 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Chrome'],
+    browsers: ['PhantomJS'],
 
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
-    singleRun: false,
+    singleRun: isSingleRun,
 
     // Concurrency level
     // how many browser should be started simultaneous
@@ -84,7 +89,7 @@ module.exports = function(config) {
       require('karma-webpack'),
       'karma-chai',
       'karma-mocha',
-      'karma-chrome-launcher',
+      'karma-phantomjs-launcher',
       'karma-coverage'
     ]
   });

@@ -6,6 +6,7 @@
   "scripts": {
     "commit": "git-cz",
     "test": "NODE_ENV=test karma start",
+    "test:single": "SINGLE_RUN=true NODE_ENV=test karma start",
     "serve": "node node_modules/.bin/webpack-dev-server --content-base dev",
     "prebuild": "rm -rf dist && mkdir dist",
     "build": "NODE_ENV=production node node_modules/.bin/webpack"
@@ -49,9 +50,11 @@
     "karma-chrome-launcher": "0.2.2",
     "karma-coverage": "0.5.3",
     "karma-mocha": "0.2.1",
+    "karma-phantomjs-launcher": "1.0.0",
     "karma-webpack": "1.7.0",
     "mocha": "2.4.5",
     "node-sass": "3.4.2",
+    "phantomjs-prebuilt": "2.1.4",
     "sass-loader": "3.1.2",
     "style-loader": "0.13.0",
     "webpack": "1.12.12",
