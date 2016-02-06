@@ -33,9 +33,14 @@ var config = {
 };
 
 if (process.env.NODE_ENV === 'production') {
-  config.entry = './app/imageCropper/imageCropperDirective';
+  config.context = __dirname + '/src';
+  config.entry = './index.js';
   config.output.path = __dirname + '/dist';
-  config.output.filename = 'angularImageCropper.js';
+  config.output.filename = 'angular-image-cropper.js';
+  config.output.library = 'imageCropper';
+  config.output.libraryTarget = 'umd';
+  // require("angular") is external and available on the global var angular.
+  config.externals = { angular: 'angular' };
   //config.plugins.push(new webpack.optimize.UglifyJsPlugin());
   config.devtool = 'source-map';
 }

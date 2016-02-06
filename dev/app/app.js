@@ -4,12 +4,10 @@ if (ON_TEST) {
   require('angular-mocks/angular-mocks');
 }
 
-require('./imageCropper/imageCropperDirective')(angular);
-
 require('./app.css');
 
 angular
-  .module('app', ['imageCropper'])
+  .module('app', [require('./../../src')])
   .controller('mainController', ['$scope', function($scope) {
     /* jshint validthis: true */
     var vm = this;

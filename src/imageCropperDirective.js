@@ -1,13 +1,11 @@
-require('./angular-image-cropper.scss');
-var Cropper = require('./imageCropper');
-
 if (ON_TEST) {
-  require('./imageCropperDirective.test')(angular);
+  require('./imageCropperDirective.test.js')(angular);
 }
 
-module.exports = function(angular) {
+module.exports = function(angular, Cropper) {
+  require('./angular-image-cropper.scss');
   angular
-    .module('imageCropper', [])
+    .module('imageCropper')
     .directive('imageCropper', function() {
       return {
         restrict: 'E',
