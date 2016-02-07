@@ -82,7 +82,7 @@ angular.module('myApp', ['imageCropper']);
   api="getApiFunction"
   crop-callback="myCallbackFunction"
   check-cross-origin="false"
-  zoom-step=""
+  zoom-step="0.1"
 ></image-cropper>
 ```
 
