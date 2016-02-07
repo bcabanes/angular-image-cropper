@@ -44,26 +44,21 @@ bower install ng-image-cropper
 #### Using modules
 
 Just require the module when you declare your module's dependencies:
-
 ```javascript
 var angular = require('angular');
 angular
-  .module('app', [require('angular-image-cropper')])
+  .module('myApp', [require('angular-image-cropper')])
   .controller(/*...*/);
 ```
 
 #### Using script tags
 
 Just import the `angular-image-cropper` javascript file in your `index.html`:
-
 ```html
 <script src="/path/to/angular-image-cropper.js"></script>
 ```
 
-### Import the module into your app
-
-Simply add the module as dependency to your main application module like this:
-
+Add the module as dependency to your main application module like this:
 ```javascript
 angular.module('myApp', ['imageCropper']);
 ```
@@ -87,11 +82,10 @@ angular.module('myApp', ['imageCropper']);
 #### Options
 
 Angular image cropper comes with some options to simplify your development:
-
 * `image-url` _string_ Source image that will be cropped, can be an URL or base64
 * `width` _string_ Width of the cropped image
 * `height` _string_ Height of the cropped image
-* `zoom-step` _string_ Zoom step, must be `0 < zoomStep < 1`
+* `zoom-step` _string_ Zoom step, must be `0 < zoomStep < 1` (0.1 is 10%)
 * `fit-on-init` _boolean_ Fit the image on cropper initialization (keep the ratio)
 * `center-on-init` _boolean_ Center the image on cropper initialization
 * `show-controls` _boolean_ Display or not the control buttons (`true` by default)
@@ -102,7 +96,6 @@ Angular image cropper comes with some options to simplify your development:
 #### Api
 
 Angular image cropper gives you access to the api, you can see an example [here](https://github.com/bcabanes/angular-image-cropper/blob/master/dev/app/app.js):
-
 * `crop` _function_ return the cropped image in `base64`
 * `fit` _function_ fit the image to the wrapper dimensions (keep the ratio)
 * `rotate` _function_ Apply the rotation with degrees given, should be a modulo of 90 (90, 180, 270, 360), can be negative 
