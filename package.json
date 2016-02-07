@@ -1,6 +1,6 @@
 {
   "name": "angular-image-cropper",
-  "version": "1.0.0",
+  "version": "0.0.0-semantically-released",
   "description": "AngularJS directive for cropping images (responsive|touch).",
   "main": "dist/angular-image-cropper.js",
   "scripts": {
