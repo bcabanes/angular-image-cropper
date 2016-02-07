@@ -8,6 +8,7 @@
     "test": "NODE_ENV=test karma start",
     "test:single": "SINGLE_RUN=true NODE_ENV=test karma start",
     "check-coverage": "node_modules/.bin/istanbul check-coverage --statements 10 --branches 10 --functions 10 --lines 10",
+    "report-coverage": "cat ./coverage/report-lcov/lcov.info | codecov",
     "serve": "node node_modules/.bin/webpack-dev-server --content-base dev",
     "prebuild": "rm -rf dist && mkdir dist",
     "build": "NODE_ENV=production node node_modules/.bin/webpack"
