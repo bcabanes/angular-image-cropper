@@ -91,11 +91,26 @@ Angular image cropper comes with some options to simplify your development:
 * `show-controls` _boolean_ Display or not the control buttons (`true` by default)
 * `check-cross-origin` _boolean_ Enable cross origin or not
 * `crop-callback` _function_ Function executed with base64 cropped image as argument when when crop control is clicked
+```javascript
+vm.updateResultImage = function(base64) {
+  vm.resultImage = base64;
+  $scope.$apply(); // Apply the changes.
+};
+```
 * `api` _function_ Function executed with cropper's API as argument
 
 #### Api
 
 Angular image cropper gives you access to the api, you can see an example [here](https://github.com/bcabanes/angular-image-cropper/blob/master/dev/app/app.js):
+```javascript
+// Cropper API available when image is ready.
+vm.getCropperApi = function(api) {
+  api.zoom(3);
+  api.rotate(270);
+  api.fit();
+  vm.resultImage = api.crop();
+};
+```
 * `crop` _function_ return the cropped image in `base64`
 * `fit` _function_ fit the image to the wrapper dimensions (keep the ratio)
 * `rotate` _function_ Apply the rotation with degrees given, should be a modulo of 90 (90, 180, 270, 360), can be negative 
