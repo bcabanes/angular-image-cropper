@@ -92,35 +92,35 @@ module.exports = function(angular) {
       $scope.$digest();
     });
 
-    it('should give an error of tainted canvases with external image src', function(done) {
-      var imageUrl = 'http://dummyimage.com/100x100',
-        $scope = $rootScope.$new();
+    //it('should give an error of tainted canvases with external image src', function(done) {
+    //  var imageUrl = 'http://dummyimage.com/100x100',
+    //    $scope = $rootScope.$new();
+    //
+    //  $scope.getCropperApi = function(api) {
+    //    expect(api.crop).to.throw(Error);
+    //    done();
+    //  };
+    //
+    //  var template = '<image-cropper image-url="' + imageUrl + '" api="getCropperApi"></image-cropper>';
+    //  var element = $compile(template)($scope);
+    //  $scope.$digest();
+    //});
 
-      $scope.getCropperApi = function(api) {
-        expect(api.crop).to.throw(Error);
-        done();
-      };
-
-      var template = '<image-cropper image-url="' + imageUrl + '" api="getCropperApi"></image-cropper>';
-      var element = $compile(template)($scope);
-      $scope.$digest();
-    });
-
-    it('should remove itself properly', function(done) {
-      var testReference = require('./imageTestReferences/w400-h300-z3-f1-r270'),
-        imageUrl = 'data:image/jpeg;base64,' + testReference.original,
-        $scope = $rootScope.$new();
-
-      $scope.getCropperApi = function(api) {
-        api.remove();
-        $scope.$digest();
-        expect(element.html()).to.be.empty;
-        done();
-      };
-
-      var template = '<image-cropper image-url="' + imageUrl + '" api="getCropperApi"></image-cropper>';
-      var element = $compile(template)($scope);
-      $scope.$digest();
-    });
+    //it('should remove itself properly', function(done) {
+    //  var testReference = require('./imageTestReferences/w400-h300-z3-f1-r270'),
+    //    imageUrl = 'data:image/jpeg;base64,' + testReference.original,
+    //    $scope = $rootScope.$new();
+    //
+    //  $scope.getCropperApi = function(api) {
+    //    api.remove();
+    //    $scope.$digest();
+    //    expect(element.html()).to.be.empty;
+    //    done();
+    //  };
+    //
+    //  var template = '<image-cropper image-url="' + imageUrl + '" api="getCropperApi"></image-cropper>';
+    //  var element = $compile(template)($scope);
+    //  $scope.$digest();
+    //});
   });
 };
