@@ -76,6 +76,7 @@ angular.module('myApp', ['imageCropper']);
   crop-callback="myCallbackFunction"
   check-cross-origin="false"
   zoom-step="0.1"
+  button-labels="myButtonLabelsObject"
 ></image-cropper>
 ```
 
@@ -98,6 +99,17 @@ vm.updateResultImage = function(base64) {
 };
 ```
 * `api` _function_ Function executed with cropper's API as argument
+* `button-labels` _object_ Give you the ability to customize button labels by passing an object like
+```javascript
+vm.myButtonLabels = {
+  rotateLeft: ' (rotate left) ',
+  rotateRight: ' (rotate right) ',
+  zoomIn: ' (zoomIn) ',
+  zoomOut: ' (zoomOut) ',
+  fit: ' (fit) ',
+  crop: ' <span class="fa fa-crop">[crop]</span> ' // You can pass html too.
+}
+```
 
 #### Api
 
