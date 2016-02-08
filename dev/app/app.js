@@ -17,6 +17,15 @@ angular
     vm.showControls = true;
     vm.fit = false;
 
+    vm.myButtonLabels = {
+      rotateLeft: ' (rotate left) ',
+      rotateRight: ' (rotate right) ',
+      zoomIn: ' (zoomIn) ',
+      zoomOut: ' (zoomOut) ',
+      fit: ' (fit) ',
+      crop: ' [crop] '
+    };
+
     vm.updateResultImage = function(base64) {
       vm.resultImage = base64;
       $scope.$apply(); // Apply the changes.

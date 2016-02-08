@@ -19,12 +19,16 @@ module.exports = function(angular, Cropper) {
           imageUrl: '@',
           showControls: '@',
           width: '@',
-          zoomStep: '@'
+          zoomStep: '@',
+          actionLabels: '&'
         },
         bindToController: true,
         controllerAs: 'vm',
         controller: function() {
           var self = this;
+
+          // Get action labels.
+          this.actionLabels = this.actionLabels();
 
           // Get callback.
           this.apiCallback = this.api();
