@@ -1,7 +1,5 @@
 .idea
-bower_components
 coverage
-dist
 node_modules
 
 npm-debug.log
