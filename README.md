@@ -31,10 +31,10 @@ Like selecting the display area of a profile picture or avatar.
 npm install angular-image-cropper
 ```
 
-#### Using [Bower](http://bower.io/) DEPRECATED (older version)
+#### Using [Bower](http://bower.io/) (not recommended)
 
 ```bash
-bower install ng-image-cropper#v0.1.1
+bower install https://npmcdn.com/angular-image-cropper/bower.zip
 ```
 
 ## Usage
