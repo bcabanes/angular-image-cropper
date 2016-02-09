@@ -1,6 +1,5 @@
 {
   "name": "ng-image-cropper",
-  "version": "1.0.0",
   "homepage": "https://github.com/bcabanes/angular-image-cropper",
   "authors": [
     "bcabanes <contact@benjamincabanes.com>"
@@ -23,11 +22,16 @@
     "fluid"
   ],
   "dependencies": {
-      "angular": "^1.4.9"
+    "angular": "^1.4.9"
   },
   "license": "MIT",
   "ignore": [
-    "**/.*",
+    "dev",
+    ".gitignore",
+    ".travis.yml",
+    "coverage",
+    "webpack.config.js",
+    "karma.conf.js",
     "node_modules",
     "bower_components",
     "test",

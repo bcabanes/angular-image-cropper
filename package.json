@@ -9,10 +9,10 @@
     "test:single": "SINGLE_RUN=true NODE_ENV=test karma start",
     "check-coverage": "node_modules/.bin/istanbul check-coverage --statements 10 --branches 10 --functions 10 --lines 10",
     "report-coverage": "cat ./coverage/report-lcov/lcov.info | codecov",
-    "serve": "node node_modules/.bin/webpack-dev-server --content-base dev",
+    "serve": "node node_modules/.bin/webpack-dev-server --content-base dev --progress --colors",
     "prebuild": "rm -rf dist && mkdir dist",
-    "build": "NODE_ENV=production node node_modules/.bin/webpack",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
+    "build": "NODE_ENV=production node node_modules/.bin/webpack --progress --colors",
+    "semantic-release": "semantic-release pre && npm run build &&  npm publish && semantic-release post"
   },
   "repository": {
     "type": "git",
