@@ -331,14 +331,14 @@ Cropper.prototype.initializeGesture = function() {
 
   var bind = function() {
     self.elements.body.classList.add('imgCropper-dragging');
-    self.addEventListeners(self.elements.container, self.gesture.events.move, drag);
-    self.addEventListeners(self.elements.container, self.gesture.events.stop, unbind);
+    self.addEventListeners(self.elements.body, self.gesture.events.move, drag);
+    self.addEventListeners(self.elements.body, self.gesture.events.stop, unbind);
   };
 
   var unbind = function() {
     self.elements.body.classList.remove('imgCropper-dragging');
-    self.removeEventListeners(self.elements.container, self.gesture.events.move, drag);
-    self.removeEventListeners(self.elements.container, self.gesture.events.stop, unbind);
+    self.removeEventListeners(self.elements.body, self.gesture.events.move, drag);
+    self.removeEventListeners(self.elements.body, self.gesture.events.stop, unbind);
   };
 
   var drag = function(event) {
