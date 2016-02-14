@@ -1,0 +1,40 @@
+{
+  "name": "ng-image-cropper",
+  "homepage": "https://github.com/bcabanes/angular-image-cropper",
+  "authors": [
+    "bcabanes <contact@benjamincabanes.com>"
+  ],
+  "description": "AngularJS directive for cropping images.",
+  "main": "dist/angular-image-cropper.js",
+  "keywords": [
+    "angularjs",
+    "angular",
+    "crop",
+    "image",
+    "rotate",
+    "zoom",
+    "drag",
+    "angularjs-module",
+    "fit",
+    "center",
+    "touch",
+    "responsive",
+    "fluid"
+  ],
+  "dependencies": {
+    "angular": "^1.4.9"
+  },
+  "license": "MIT",
+  "ignore": [
+    "dev",
+    ".gitignore",
+    ".travis.yml",
+    "coverage",
+    "webpack.config.js",
+    "karma.conf.js",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

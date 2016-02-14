@@ -1,43 +1,86 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <meta charset='utf-8'>
-    <title>AngularJS image cropper</title>
-    <link href='bower_components/ng-image-cropper/dist/angular-image-cropper.min.css' media='all' rel='stylesheet'>
-    <link href='css/demo.css' media='all' rel='stylesheet'>
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300' rel='stylesheet' type='text/css'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0, target-densitydpi=device-dpi'>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta charset='utf-8'>
+  <title>AngularJS image cropper</title>
+  <link href='http://fonts.googleapis.com/css?family=Open+Sans:300' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="styles.css">
+  <meta name='viewport' content='width=device-width, initial-scale=1.0, target-densitydpi=device-dpi'>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
 </head>
 <body ng-app="app">
 
-    <a class="github-link" href="https://github.com/bcabanes/angular-image-cropper">Star on GitHub</a>
+  <a class="github-link" href="https://github.com/bcabanes/angular-image-cropper">Star on GitHub</a>
 
-    <main class="wrapp">
-        <header>
-            <h1>Angular image cropper</h1>
-            <p>A really simple cropper for angular with action buttons and no external dependencies.</p>
-        </header>
-        <section class="cropper">
-            <div ng-controller="mainController as vm">
-                <image-cropper image="{{vm.imageUrl}}"
-                    dest-width="640"
-                    dest-height="480"
-                    show-controls="vm.showControls"
-                    cropped-image="vm.imageResult"
-                ></image-cropper>
+  <main class="wrapp">
+    <header>
+      <h1>Angular image cropper</h1>
+      <p>A really simple cropper for angular with action buttons and no external dependencies.</p>
+    </header>
+    <section class="cropper">
+      <div ng-controller="mainController as vm">
+        <image-cropper image-url="{{vm.imageUrl}}"
+                       width="640"
+                       height="480"
+                       show-controls="{{vm.showControls}}"
+                       fit-on-init="false"
+                       center-on-init="true"
+                       api="vm.cropperApi"
+                       crop-callback="vm.updateResultImage"
+                       action-labels="vm.myButtonLabels"
+        ></image-cropper>
 
-                <div class="result">
-                    <img class="frame" ng-src="{{vm.imageResult}}" width="50%">
-                </div>
-            </div>
-        </section>
-    </main>
+        <div class="result">
+          <img class="frame" ng-src="{{vm.resultImage}}">
+        </div>
+      </div>
+    </section>
+  </main>
 
-    <script src="bower_components/jquery/dist/jquery.min.js"></script>
-    <script src="bower_components/angular/angular.js"></script>
-    <script src="js/app.js"></script>
-    <script src="js/controller.js"></script>
-    <script src="bower_components/ng-image-cropper/dist/angular-image-cropper.min.js"></script>
+  <script src="node_modules/angular/angular.js"></script>
+  <script src="node_modules/angular-image-cropper/dist/angular-image-cropper.js"></script>
+  <script>
+    angular
+      .module('app', ['imageCropper'])
+      .controller('mainController', ['$scope', function($scope) {
+        /* jshint validthis: true */
+        var vm = this;
+
+        // Some cropper options.
+        vm.imageUrl = 'images/unsplash_' + getRandomInt(1,7) + '.jpg';
+        vm.showControls = true;
+        vm.fit = false;
+
+        vm.myButtonLabels = {
+          rotateLeft: ' (rotate left) ',
+          rotateRight: ' (rotate right) ',
+          zoomIn: ' (zoomIn) ',
+          zoomOut: ' (zoomOut) ',
+          fit: ' (fit) ',
+          crop: ' [crop] '
+        };
+
+        vm.updateResultImage = function(base64) {
+          vm.resultImage = base64;
+          $scope.$apply(); // Apply the changes.
+        };
+
+        // Cropper API available when image is ready.
+        //vm.cropperApi = function(cropperApi) {
+        //  cropperApi.zoom(3);
+        //  cropperApi.rotate(270);
+        //  cropperApi.fit();
+        //  vm.resultImage = cropperApi.crop();
+        //  $scope.$apply(); // Apply the changes.
+        //};
+
+        /**
+         * Returns a random integer between min (inclusive) and max (inclusive)
+         */
+        function getRandomInt(min, max) {
+          return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+      }]);
+  </script>
 </body>
 </html>

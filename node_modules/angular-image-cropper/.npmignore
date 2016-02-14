@@ -1,0 +1,10 @@
+.idea
+bower_components
+coverage
+node_modules
+dev
+npm-debug.log
+.gitignore
+.travis.yml
+karma.conf.js
+webpack.config.js
