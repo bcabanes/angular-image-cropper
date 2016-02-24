@@ -283,7 +283,7 @@ Cropper.prototype.setupImageSRC = function() {
  * Set dimensions.
  */
 Cropper.prototype.setDimensions = function() {
-  this.zoomInFactor = 1 + this.options.zoomStep;
+  this.zoomInFactor = 1 + parseFloat(this.options.zoomStep);
   this.zoomOutFactor = 1 / this.zoomInFactor;
 
   this.imageRatio = this.options.height / this.options.width;
