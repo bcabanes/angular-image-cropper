@@ -65,7 +65,8 @@ function Cropper(options) {
     crop: this.cropImage.bind(this),
     fit: this.applyFit.bind(this),
     rotate: this.applyRotation.bind(this),
-    zoom: this.applyZoom.bind(this),
+    zoomIn: this.applyZoomIn.bind(this),
+    zoomOut: this.applyZoomOut.bind(this),
     remove: this.remove.bind(this)
   };
 
@@ -133,8 +134,11 @@ Cropper.prototype.applyRotation = function(degree) {
   this.rotateImage(degree);
 };
 
-Cropper.prototype.applyZoom = function(zoom) {
-  this.zoomImage(zoom);
+Cropper.prototype.applyZoomIn = function(zoom) {
+  this.zoomImage(1 + parseFloat(zoom));
+};
+Cropper.prototype.applyZoomOut = function(zoom) {
+  this.zoomImage(1 / ( 1 + parseFloat(zoom)));
 };
 
 Cropper.prototype.applyFit = function() {

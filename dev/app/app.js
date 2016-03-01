@@ -13,7 +13,7 @@ angular
     var vm = this;
 
     // Some cropper options.
-    vm.imageUrl = 'assets/images/unsplash_' + getRandomInt(1,7) + '.jpg';
+    vm.imageUrl = 'assets/images/unsplash_' + getRandomInt(1, 1) + '.jpg';
     vm.showControls = true;
     vm.fit = false;
 
@@ -32,10 +32,11 @@ angular
     };
 
     // Cropper API available when image is ready.
-    //vm.cropperApi = function(cropperApi) {
-    //  cropperApi.zoom(3);
-    //  cropperApi.rotate(270);
-    //  cropperApi.fit();
+    //vm.cropperApi = functigit staon(cropperApi) {
+      //cropperApi.zoomOut(10);
+      //cropperApi.zoomIn(20);
+      //cropperApi.rotate(270);
+      //cropperApi.fit();
     //  vm.resultImage = cropperApi.crop();
     //  $scope.$apply(); // Apply the changes.
     //};

@@ -91,7 +91,7 @@ Angular image cropper comes with some options to simplify your development:
 * `image-url` _string_ Source image that will be cropped, can be an URL or base64
 * `width` _string_ Width of the cropped image
 * `height` _string_ Height of the cropped image
-* `zoom-step` _string_ Zoom step, must be `0 < zoomStep < 1` (0.1 is 10%)
+* `zoom-step` _string_ Zoom step
 * `fit-on-init` _boolean_ Fit the image on cropper initialization (keep the ratio)
 * `center-on-init` _boolean_ Center the image on cropper initialization
 * `show-controls` _boolean_ Display or not the control buttons (`true` by default)
@@ -122,7 +122,8 @@ Angular image cropper gives you access to the api, you can see an example [here]
 ```javascript
 // Cropper API available when image is ready.
 vm.getCropperApi = function(api) {
-  api.zoom(3);
+  api.zoomIn(3);
+  api.zoomOut(2);
   api.rotate(270);
   api.fit();
   vm.resultImage = api.crop();
@@ -131,7 +132,8 @@ vm.getCropperApi = function(api) {
 * `crop` _function_ return the cropped image in `base64`
 * `fit` _function_ fit the image to the wrapper dimensions (keep the ratio)
 * `rotate` _function_ Apply the rotation with degrees given, should be a modulo of 90 (90, 180, 270, 360), can be negative 
-* `zoom` _function_ Apply the zoom given, can be negative (fit the image if zoomOut factor is too high)
+* `zoomIn` _function_ Apply the zoomIn given
+* `zoomOut` _function_ Apply the zoomOut given
 * `remove` _function_ Remove the cropper
 
 ## License

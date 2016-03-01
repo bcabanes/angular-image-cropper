@@ -60,7 +60,7 @@ module.exports = function(angular) {
         $scope = $rootScope.$new();
 
       $scope.getCropperApi = function(api) {
-        api.zoom(3);
+        api.zoomIn(3);
         api.rotate(270);
         api.fit();
         var image = api.crop();
@@ -81,7 +81,7 @@ module.exports = function(angular) {
 
       $scope.getCropperApi = function(api) {
         expect(function() {
-          api.zoom(3);
+          api.zoomIn(3);
           api.rotate(25);
         }).to.throw(Error, /Support only multiple of 90° for rotation./gi);
         done();
