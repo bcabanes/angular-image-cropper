@@ -219,7 +219,7 @@ Cropper.prototype.buildDOM = function() {
 Cropper.prototype.remove = function() {
   var elements = this.elements;
   elements.target.removeChild(elements.wrapper);
-  elements.target.removeChild(elements.controls.wrapper);
+  if (this.options.showControls) elements.target.removeChild(elements.controls.wrapper);
 };
 
 Cropper.prototype.loadImage = function() {

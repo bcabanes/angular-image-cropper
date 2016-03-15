@@ -14,7 +14,7 @@ angular
 
     // Some cropper options.
     vm.imageUrl = 'assets/images/unsplash_' + getRandomInt(1, 1) + '.jpg';
-    vm.showControls = true;
+    vm.showControls = false;
     vm.fit = false;
 
     vm.myButtonLabels = {
@@ -32,12 +32,13 @@ angular
     };
 
     // Cropper API available when image is ready.
-    //vm.cropperApi = functigit staon(cropperApi) {
-      //cropperApi.zoomOut(10);
-      //cropperApi.zoomIn(20);
-      //cropperApi.rotate(270);
-      //cropperApi.fit();
+    //vm.cropperApi = function(cropperApi) {
+    //  cropperApi.zoomOut(10);
+    //  cropperApi.zoomIn(20);
+    //  cropperApi.rotate(270);
+    //  cropperApi.fit();
     //  vm.resultImage = cropperApi.crop();
+    //  //cropperApi.remove();
     //  $scope.$apply(); // Apply the changes.
     //};
 
