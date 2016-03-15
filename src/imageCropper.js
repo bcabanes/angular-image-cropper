@@ -121,10 +121,10 @@ Cropper.prototype.bindControls = function() {
     self.applyRotation(90);
   });
   this.elements.controls.zoomIn.addEventListener('click', function() {
-    self.applyZoom(self.zoomInFactor);
+    self.applyZoomIn(self.zoomInFactor);
   });
   this.elements.controls.zoomOut.addEventListener('click', function() {
-    self.applyZoom(self.zoomOutFactor);
+    self.applyZoomOut(self.zoomOutFactor);
   });
   this.elements.controls.fit.addEventListener('click', this.applyFit.bind(this));
   this.elements.controls.crop.addEventListener('click', this.cropImage.bind(this));
