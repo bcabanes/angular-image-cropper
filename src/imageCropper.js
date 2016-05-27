@@ -187,19 +187,13 @@ Cropper.prototype.buildDOM = function() {
   _elements.controls.wrapper = document.createElement('div');
   _elements.controls.wrapper.className = 'imgCropper-controls';
 
-  _elements.controls.rotateLeft = document.createElement('button');
-  _elements.controls.rotateLeft.innerHTML = this.options.actionLabels.rotateLeft;
-  _elements.controls.rotateRight = document.createElement('button');
-  _elements.controls.rotateRight.innerHTML = this.options.actionLabels.rotateRight;
-  _elements.controls.zoomIn = document.createElement('button');
-  _elements.controls.zoomIn.innerHTML = this.options.actionLabels.zoomIn;
-  _elements.controls.zoomOut = document.createElement('button');
-  _elements.controls.zoomOut.innerHTML = this.options.actionLabels.zoomOut;
-  _elements.controls.fit = document.createElement('button');
-  _elements.controls.fit.innerHTML = this.options.actionLabels.fit;
+  _elements.controls.rotateLeft = this._buildControl(this.options.actionLabels.rotateLeft);
+  _elements.controls.rotateRight = this._buildControl(this.options.actionLabels.rotateRight);
+  _elements.controls.zoomIn = this._buildControl(this.options.actionLabels.zoomIn);
+  _elements.controls.zoomOut = this._buildControl(this.options.actionLabels.zoomOut);
+  _elements.controls.fit = this._buildControl(this.options.actionLabels.fit);
 
-  _elements.controls.crop = document.createElement('button');
-  _elements.controls.crop.innerHTML = this.options.actionLabels.crop;
+  _elements.controls.crop = this._buildControl(this.options.actionLabels.crop);
 
   // Target -> Wrapper -> buttons
   _elements.controls.wrapper.appendChild(_elements.controls.rotateLeft);
@@ -211,6 +205,19 @@ Cropper.prototype.buildDOM = function() {
   _elements.target.appendChild(_elements.controls.wrapper);
 
   this.loadImage();
+};
+
+/**
+ * Build control element.
+ * @param label
+ * @returns {Element}
+ */
+Cropper.prototype._buildControl = function(label) {
+  var control = document.createElement('button');
+  control.setAttribute('type', 'button');
+  control.innerHTML = label;
+
+  return control;
 };
 
 /**
