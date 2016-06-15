@@ -229,6 +229,15 @@ Cropper.prototype.remove = function() {
   if (this.options.showControls) elements.target.removeChild(elements.controls.wrapper);
 };
 
+Cropper.prototype.changeImage = function(newImageUrl) {
+  if (typeof newImageUrl === 'undefined' || newImageUrl === '') {
+    return;
+  }
+
+  this.originalUrl = newImageUrl;
+  this.loadImage();
+};
+
 Cropper.prototype.loadImage = function() {
   var self = this;
   var xhr;

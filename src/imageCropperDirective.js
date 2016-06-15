@@ -7,6 +7,38 @@ module.exports = function(angular, Cropper) {
   angular
     .module('imageCropper')
     .directive('imageCropper', function() {
+      var imageCropperController = function($scope) {
+        var self = this;
+
+        // Get action labels.
+        this.actionLabels = this.actionLabels();
+
+        // Get callback.
+        this.apiCallback = this.api();
+        this.cropCallback = this.cropCallback();
+
+        // Eval for boolean values.
+        this.fitOnInit = eval(this.fitOnInit);
+        this.centerOnInit = eval(this.centerOnInit);
+        this.checkCrossOrigin = eval(this.checkCrossOrigin);
+        this.showControls = eval(this.showControls);
+
+        this.init = function() {
+          this.target = this.element;
+          this.api = new Cropper(self);
+
+          $scope.$watch('vm.imageUrl', function(newImageUrl, oldImageUrl) {
+            if (angular.isDefined(newImageUrl)
+              && !angular.equals(newImageUrl, oldImageUrl)
+            ) {
+              self.api.changeImage(newImageUrl);
+            }
+          });
+        };
+      };
+
+      imageCropperController.$inject = ['$scope'];
+
       return {
         restrict: 'E',
         scope: {
@@ -24,28 +56,8 @@ module.exports = function(angular, Cropper) {
         },
         bindToController: true,
         controllerAs: 'vm',
-        controller: function() {
-          var self = this;
-
-          // Get action labels.
-          this.actionLabels = this.actionLabels();
-
-          // Get callback.
-          this.apiCallback = this.api();
-          this.cropCallback = this.cropCallback();
-
-          // Eval for boolean values.
-          this.fitOnInit = eval(this.fitOnInit);
-          this.centerOnInit = eval(this.centerOnInit);
-          this.checkCrossOrigin = eval(this.checkCrossOrigin);
-          this.showControls = eval(this.showControls);
-
-          this.init = function() {
-            this.target = this.element;
-            this.api = new Cropper(self);
-          }
-        },
-        'link': function(scope, element, attributes, controller) {
+        controller: imageCropperController,
+        link: function(scope, element, attributes, controller) {
           controller.element = element[0];
           controller.init();
         }
