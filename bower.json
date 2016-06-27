@@ -1,6 +1,12 @@
 {
   "name": "ng-image-cropper",
+  "prettyName": "ng-image-cropper",
+  "version": "1.1.8",
   "homepage": "https://github.com/bcabanes/angular-image-cropper",
+  "repository": {
+        "type": "git",
+        "url": "https://github.com/bcabanes/angular-image-cropper"
+    },
   "authors": [
     "bcabanes <contact@benjamincabanes.com>"
   ],
