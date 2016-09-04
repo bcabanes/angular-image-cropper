@@ -34,12 +34,12 @@ npm install angular-image-cropper
 #### Using [Bower](http://bower.io/) (not recommended)
 
 ```bash
-bower install https://npmcdn.com/angular-image-cropper/bower.zip
+bower install https://unpkg.com/angular-image-cropper/bower.zip
 ```
 
 Or if you want to install a specific version (e.g: for 1.1.4):
 ```bash
-bower install https://npmcdn.com/angular-image-cropper@1.1.4/bower.zip --save
+bower install https://unpkg.com/angular-image-cropper@1.1.4/bower.zip --save
 ```
 
 ## Usage
