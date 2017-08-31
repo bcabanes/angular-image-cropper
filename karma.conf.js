@@ -4,11 +4,11 @@ var entry = path.resolve(webpackConfig.context, webpackConfig.entry);
 var preprocessors = {};
 preprocessors[entry] = ['webpack', 'coverage'];
 
-webpackConfig.module.preLoaders = [{
+webpackConfig.module.loaders.push({
   test: /\.js$/,
   exclude: /node_modules/,
   loader: 'istanbul-instrumenter-loader'
-}];
+});
 
 var isSingleRun = false;
 if (process.env.SINGLE_RUN) {
