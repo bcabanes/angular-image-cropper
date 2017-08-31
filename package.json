@@ -1,6 +1,6 @@
 {
   "name": "angular-image-cropper",
-  "version": "0.0.0-semantically-released",
+  "version": "0.0.0-development",
   "description": "AngularJS directive for cropping images (responsive|touch).",
   "main": "dist/angular-image-cropper.js",
   "scripts": {
@@ -12,7 +12,7 @@
     "serve": "node node_modules/.bin/webpack-dev-server --content-base dev --progress --colors",
     "prebuild": "rm -rf dist && mkdir dist",
     "build": "NODE_ENV=production node node_modules/.bin/webpack --progress --colors",
-    "semantic-release": "semantic-release pre && npm run build &&  npm publish && semantic-release post"
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "repository": {
     "type": "git",
@@ -39,7 +39,8 @@
   },
   "homepage": "https://github.com/bcabanes/angular-image-cropper#readme",
   "dependencies": {
-    "angular": "1.4.9"
+    "angular": "1.4.9",
+    "semantic-release-cli": "^3.0.3"
   },
   "devDependencies": {
     "angular-mocks": "1.4.9",
