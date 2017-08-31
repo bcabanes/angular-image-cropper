@@ -14,7 +14,7 @@ angular
 
     // Some cropper options.
     vm.imageUrl = 'assets/images/unsplash_' + getRandomInt(1, 1) + '.jpg';
-    vm.showControls = false;
+    vm.showControls = true;
     vm.fit = false;
 
     vm.myButtonLabels = {
